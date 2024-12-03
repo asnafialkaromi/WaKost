@@ -36,12 +36,12 @@ function NavBar() {
 
       <NavbarContent className="hidden sm:flex gap-4" justify="center">
         <NavbarItem isActive>
-          <Link color="primary" href="#">
+          <Link color="primary" href="/">
             Home
           </Link>
         </NavbarItem>
         <NavbarItem>
-          <Link color="foreground" href="#">
+          <Link color="foreground" href="/kost">
             Kost
           </Link>
         </NavbarItem>
