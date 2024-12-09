@@ -28,7 +28,7 @@ function Map() {
   // Fetch locations from Supabase
   useEffect(() => {
     const fetchLocations = async () => {
-      const { data, error } = await supabase.from("location").select("*");
+      const { data, error } = await supabase.from("properties").select("*");
       if (error) console.error("Error fetching locations:", error);
       else setLocations(data);
     };

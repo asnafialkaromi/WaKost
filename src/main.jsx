@@ -4,6 +4,9 @@ import "./index.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import LandingPage from "./pages/LandingPage.jsx";
 import KostPage from "./pages/KostPage.jsx";
+import Dashboard from "./pages/Dashboard.jsx";
+import Properties from "./pages/Properties.jsx";
+import AddProperties from "./pages/AddProperties.jsx";
 
 const router = createBrowserRouter([
   {
@@ -13,6 +16,18 @@ const router = createBrowserRouter([
   {
     path: "/kost",
     element: <KostPage />,
+  },
+  {
+    path: "/dashboard",
+    element: <Dashboard />,
+  },
+  {
+    path: "/properties",
+    element: <Properties />,
+  },
+  {
+    path: "/properties/add",
+    element: <AddProperties />,
   },
 ]);
 
