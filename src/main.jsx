@@ -7,6 +7,7 @@ import KostPage from "./pages/KostPage.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Properties from "./pages/Properties.jsx";
 import AddProperties from "./pages/AddProperties.jsx";
+import DetailProperties from "./pages/DetailProperties.jsx";
 
 const router = createBrowserRouter([
   {
@@ -28,6 +29,10 @@ const router = createBrowserRouter([
   {
     path: "/properties/add",
     element: <AddProperties />,
+  },
+  {
+    path: "/kost/:id",
+    element: <DetailProperties />,
   },
 ]);
 
