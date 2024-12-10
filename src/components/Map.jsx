@@ -9,6 +9,7 @@ import {
 import "leaflet/dist/leaflet.css";
 import { supabase } from "../api/supabaseClient";
 import L from "leaflet";
+import { useNavigate } from "react-router-dom";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -22,10 +23,8 @@ L.Icon.Default.mergeOptions({
 
 function Map() {
   const [locations, setLocations] = useState([]);
-  const [clickedLocation, setClickedLocation] = useState(null);
-  const [newLocationName, setNewLocationName] = useState("");
+  const navigate = useNavigate();
 
-  // Fetch locations from Supabase
   useEffect(() => {
     const fetchLocations = async () => {
       const { data, error } = await supabase.from("properties").select("*");
@@ -36,51 +35,8 @@ function Map() {
     fetchLocations();
   }, []);
 
-  // Save new location to Supabase
-  const saveLocation = async () => {
-    if (!newLocationName || !clickedLocation) return;
-
-    const { data, error } = await supabase.from("location").insert([
-      {
-        name: newLocationName,
-        latitude: clickedLocation.latitude,
-        longitude: clickedLocation.longitude,
-      },
-    ]);
-
-    if (error) {
-      console.error("Error saving location:", error);
-    } else {
-      setLocations([...locations, data[1]]);
-      setClickedLocation(null); // Clear clicked location after saving
-      setNewLocationName(""); // Clear the input field
-    }
-  };
-
-  // Custom component to handle map click events
-  const LocationMarker = () => {
-    useMapEvents({
-      click(e) {
-        const { lat, lng } = e.latlng;
-        setClickedLocation({ latitude: lat, longitude: lng });
-      },
-    });
-    return clickedLocation ? (
-      <Marker position={[clickedLocation.latitude, clickedLocation.longitude]}>
-        <Popup>
-          <div>
-            <h4>Add New Location</h4>
-            <input
-              type="text"
-              placeholder="Location Name"
-              value={newLocationName}
-              onChange={(e) => setNewLocationName(e.target.value)}
-            />
-            <button onClick={saveLocation}>Save Location</button>
-          </div>
-        </Popup>
-      </Marker>
-    ) : null;
+  const handleMarkerClick = (id) => {
+    navigate(`/kost/${id}`);
   };
 
   return (
@@ -97,17 +53,11 @@ function Map() {
         <Marker
           key={location.id}
           position={[location.latitude, location.longitude]}
-        >
-          <Popup>
-            <strong>{location.name}</strong>
-            <br />
-            Latitude: {location.latitude}
-            <br />
-            Longitude: {location.longitude}
-          </Popup>
-        </Marker>
+          eventHandlers={{
+            click: () => handleMarkerClick(location.id),
+          }}
+        />
       ))}
-      <LocationMarker />
     </MapContainer>
   );
 }
