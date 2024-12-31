@@ -4,7 +4,7 @@ import React from "react";
 function SuggestSection() {
   return (
     <section className="max-w-full h-[60vh]">
-      <div className="max-w-5xl h-full flex flex-col md:flex-row items-center justify-center mx-auto py-14 px-4 gap-20">
+      <div className="max-w-7xl h-full flex flex-col md:flex-row items-center justify-center mx-auto py-14 px-4 gap-20">
         {/* Left Side */}
         <div className="md:w-1/2 w-3/6">
           <Image

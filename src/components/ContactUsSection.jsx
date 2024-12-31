@@ -4,7 +4,7 @@ import React from "react";
 function ContactUsSection() {
   return (
     <section className="max-w-full h-[60vh] bg-slate-200">
-      <div className="max-w-5xl h-full flex flex-col md:flex-row items-center justify-center mx-auto py-8 md:py-16 px-4 gap-4 md:gap-20">
+      <div className="max-w-7xl h-full flex flex-col md:flex-row items-center justify-center mx-auto py-8 md:py-16 px-4 gap-4 md:gap-20">
         {/* Title and Description */}
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-primary">Kontak Kami</h2>

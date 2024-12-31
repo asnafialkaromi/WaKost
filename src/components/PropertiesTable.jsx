@@ -15,6 +15,7 @@ import {
   TableRow,
   useDisclosure,
 } from "@nextui-org/react";
+import { Link } from "react-router-dom";
 
 function PropertiesTable() {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -105,7 +106,13 @@ function PropertiesTable() {
                 <TableCell>{property.name}</TableCell>
                 <TableCell>{property.city}</TableCell>
                 <TableCell>{property.address}</TableCell>
-                <TableCell>{property.price}</TableCell>
+                <TableCell>
+                  {property.price.toLocaleString("id-ID", {
+                    style: "currency",
+                    currency: "IDR",
+                    minimumFractionDigits: 2,
+                  })}
+                </TableCell>
                 <TableCell className="space-x-2 w-40">
                   <Button
                     color="danger"
@@ -114,9 +121,14 @@ function PropertiesTable() {
                   >
                     Delete
                   </Button>
-                  <Button color="warning" size="sm">
-                    Edit
-                  </Button>
+                  <Link
+                    to={`/properties/edit/${property.id}`}
+                    className="inline-block"
+                  >
+                    <Button color="warning" size="sm">
+                      Edit
+                    </Button>
+                  </Link>
                 </TableCell>
               </TableRow>
             ))}

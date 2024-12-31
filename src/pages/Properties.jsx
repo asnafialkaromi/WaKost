@@ -12,15 +12,16 @@ function Properties() {
       <Sidebar />
       <div className="p-4 sm:ml-64 mt-16">
         {/* Breadcrumbs */}
-        <div className="flex justify-between items-center mb-4">
+        <p className="text-2xl font-bold">Properties</p>
+        <div className="flex justify-between items-center my-4">
           <Breadcrumbs>
             <BreadcrumbItem>
-              <Link href="/properties">Properties</Link>
+              <Link href="/dashboard">Dashboard</Link>
             </BreadcrumbItem>
             <BreadcrumbItem>Properties</BreadcrumbItem>
           </Breadcrumbs>
           <Button color="primary" onClick={() => navigate("/properties/add")}>
-            Add Property
+            Tambah Kost
           </Button>
         </div>
         <PropertiesTable />

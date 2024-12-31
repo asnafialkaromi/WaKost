@@ -4,7 +4,7 @@ import FeatureCard from "./ui/FeatureCard";
 function FeatureSection() {
   return (
     <section className="max-w-full h-[80vh]">
-      <div className="max-w-5xl h-full flex flex-col md:flex-row items-center justify-center mx-auto py-16 px-4 gap-20">
+      <div className="max-w-7xl h-full flex flex-col md:flex-row items-center justify-center mx-auto py-16 px-4 gap-20">
         {/* Left Side */}
         <div className="md:w-1/2 text-left flex flex-col gap-4">
           <h3 className="text-4xl font-bold text-[#303a42] text-center">
