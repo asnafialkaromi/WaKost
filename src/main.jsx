@@ -1,13 +1,18 @@
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import {
+  BrowserRouter,
+  createBrowserRouter,
+  RouterProvider,
+} from "react-router-dom";
 import LandingPage from "./pages/LandingPage.jsx";
 import KostPage from "./pages/KostPage.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Properties from "./pages/Properties.jsx";
 import AddProperties from "./pages/AddProperties.jsx";
 import DetailProperties from "./pages/DetailProperties.jsx";
+import EditProperties from "./pages/EditProperties.jsx";
 
 const router = createBrowserRouter([
   {
@@ -33,6 +38,10 @@ const router = createBrowserRouter([
   {
     path: "/kost/:id",
     element: <DetailProperties />,
+  },
+  {
+    path: "/properties/edit/:id",
+    element: <EditProperties />,
   },
 ]);
 

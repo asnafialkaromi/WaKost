@@ -4,7 +4,7 @@ import { Button, Image, Spacer } from "@nextui-org/react";
 function HeroSection() {
   return (
     <section className="bg-[#eff4ff] max-w-full h-[70vh]">
-      <div className="max-w-5xl h-full flex flex-col md:flex-row items-center justify-center mx-auto py-16 px-6 gap-8">
+      <div className="max-w-7xl h-full flex flex-col md:flex-row items-center justify-center mx-auto py-16 px-6 gap-8">
         {/* Left Side */}
         <div className="md:w-1/2 text-left flex flex-col gap-4">
           <h1 className="text-4xl font-bold text-gray-700">

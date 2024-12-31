@@ -9,7 +9,7 @@ import {
   Checkbox,
   CheckboxGroup,
 } from "@nextui-org/react";
-import { useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "../components/SideBar";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -26,11 +26,13 @@ L.Icon.Default.mergeOptions({
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
-function AddProperties() {
+function EditProperties() {
+  const { id } = useParams(); // Get property ID from URL
   const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     name: "",
-    location: "",
+    city: "",
     address: "",
     latitude: "",
     longitude: "",
@@ -39,25 +41,66 @@ function AddProperties() {
     facilities: [],
     images: null,
   });
+
   const [allFacilities, setAllFacilities] = useState([]);
   const [clickedLocation, setClickedLocation] = useState(null);
+  const [loading, setLoading] = useState(true);
 
+  // Fetch property data and facilities on component mount
   useEffect(() => {
-    // Fetch facilities from the database when the component mounts
-    const fetchFacilities = async () => {
-      const { data: facilities, error } = await supabase
-        .from("facilities") // Replace with your facilities table name
-        .select("id, name");
+    const fetchPropertyDetails = async () => {
+      try {
+        // Fetch property details
+        const { data: property, error: propertyError } = await supabase
+          .from("properties")
+          .select(
+            `
+              id, name, city, address, latitude, longitude, price, description,
+              property_facilities (facility_id)
+            `
+          )
+          .eq("id", id)
+          .single();
 
-      if (error) {
-        console.error("Error fetching facilities:", error.message);
-      } else {
-        setAllFacilities(facilities); // Update state with facilities
+        if (propertyError) {
+          console.error(
+            "Error fetching property details:",
+            propertyError.message
+          );
+          navigate("/properties");
+          return;
+        }
+
+        // Fetch facilities
+        const { data: facilities, error: facilitiesError } = await supabase
+          .from("facilities")
+          .select("id, name");
+
+        if (facilitiesError) {
+          console.error("Error fetching facilities:", facilitiesError.message);
+          return;
+        }
+
+        setFormData({
+          ...formData,
+          name: property.name,
+          city: property.city,
+          address: property.address,
+          latitude: property.latitude,
+          longitude: property.longitude,
+          price: property.price,
+          description: property.description,
+          facilities: property.property_facilities.map((pf) => pf.facility_id),
+        });
+        setAllFacilities(facilities);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching data:", error.message);
       }
     };
 
-    fetchFacilities();
-  }, []);
+    fetchPropertyDetails();
+  }, [id, navigate]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -73,13 +116,11 @@ function AddProperties() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-
     try {
-      // Destructure formData for easier access
       const {
         name,
-        location,
+        city,
+        address,
         latitude,
         longitude,
         price,
@@ -88,92 +129,40 @@ function AddProperties() {
         images,
       } = formData;
 
-      // Insert property data
-      const { data: property, error: propertyError } = await supabase
+      // Update property details
+      const { error: updateError } = await supabase
         .from("properties")
-        .insert([
-          {
-            name,
-            city: location,
-            address: location,
-            latitude,
-            longitude,
-            price,
-            description,
-          },
-        ])
-        .select()
-        .single();
+        .update({
+          name,
+          city,
+          address,
+          latitude,
+          longitude,
+          price,
+          description,
+        })
+        .eq("id", id);
 
-      if (propertyError) {
-        console.error("Error inserting property:", propertyError.message);
+      if (updateError) {
+        console.error("Error updating property:", updateError.message);
         return;
       }
 
-      console.log("Property added successfully:", property);
-
-      // Insert related facilities for the property
-      const facilityData = facilities.map((facility) => ({
-        property_id: property.id,
-        facility_id: facility, // Ensure `facility` matches the facility ID in your database
+      // Update facilities
+      await supabase.from("property_facilities").delete().eq("property_id", id);
+      const facilityData = facilities.map((facilityId) => ({
+        property_id: id,
+        facility_id: facilityId,
       }));
-
       if (facilityData.length > 0) {
-        const { error: facilityError } = await supabase
-          .from("property_facilities")
-          .insert(facilityData);
-
-        if (facilityError) {
-          console.error("Error inserting facilities:", facilityError.message);
-          return;
-        }
-
-        console.log("Facilities added successfully");
+        await supabase.from("property_facilities").insert(facilityData);
       }
 
-      // Upload images to Supabase storage and save URLs to the database
-      if (images && images.length > 0) {
-        for (let image of images) {
-          const { data: imageData, error: uploadError } = await supabase.storage
-            .from("property-images") // Replace with your storage bucket name
-            .upload(`property-${property.id}/${image.name}`, image);
-
-          if (uploadError) {
-            console.error("Error uploading image:", uploadError.message);
-            continue;
-          }
-
-          const imageUrl = `${
-            supabase.storage
-              .from("property-images")
-              .getPublicUrl(imageData.path).data.publicUrl
-          }`;
-
-          const { error: imageInsertError } = await supabase
-            .from("images")
-            .insert({
-              property_id: property.id,
-              url: imageUrl,
-              is_primary: false, // Set to true for the first image or handle separately
-            });
-
-          if (imageInsertError) {
-            console.error(
-              "Error inserting image URL:",
-              imageInsertError.message
-            );
-            continue;
-          }
-
-          console.log("Image added successfully:", imageUrl);
-        }
-      }
-
-      alert("Property added successfully!");
-      navigate("/properties"); // Navigate to properties page after successful submission
+      alert("Property updated successfully!");
+      navigate("/properties");
     } catch (error) {
-      console.error("Error submitting form:", error.message);
-      alert("Failed to add property. Please try again.");
+      console.error("Error updating property:", error.message);
+      alert("Failed to update property. Please try again.");
     }
   };
 
@@ -184,7 +173,7 @@ function AddProperties() {
         setClickedLocation({ latitude: lat, longitude: lng });
         setFormData((prev) => ({
           ...prev,
-          latitude: lat.toFixed(6), // Ensures a consistent precision
+          latitude: lat.toFixed(6),
           longitude: lng.toFixed(6),
         }));
       },
@@ -196,23 +185,31 @@ function AddProperties() {
     ) : null;
   };
 
+  if (loading) {
+    return (
+      <>
+        <Sidebar />
+        <div className="flex flex-col flex-grow ml-0 md:ml-64 mt-24 items-center">
+          <p className="text-2xl font-bold">Loading...</p>
+        </div>
+      </>
+    );
+  }
   return (
     <>
       <Sidebar />
       <div className="flex flex-col flex-grow ml-0 md:ml-64 mt-16 p-6">
-        <p className="text-2xl font-bold">Tambah Kost</p>
-        {/* Breadcrumbs */}
+        <p className="text-2xl font-bold">Edit Properties</p>
         <Breadcrumbs className="my-4">
           <BreadcrumbItem>
             <Link href="/dashboard">Dashboard</Link>
           </BreadcrumbItem>
           <BreadcrumbItem>
-            <Link href="/properties">Kost</Link>
+            <Link href="/properties">Properties</Link>
           </BreadcrumbItem>
-          <BreadcrumbItem>Tambah Kost</BreadcrumbItem>
+          <BreadcrumbItem>Edit Property</BreadcrumbItem>
         </Breadcrumbs>
 
-        {/* Form */}
         <form
           onSubmit={handleSubmit}
           className="flex flex-col w-full gap-6 justify-center"
@@ -224,14 +221,16 @@ function AddProperties() {
                 placeholder="Masukkan nama kost"
                 name="name"
                 fullWidth
+                value={formData.name}
                 onChange={handleInputChange}
                 required
               />
               <Input
                 label="Kota"
                 placeholder="Masukkan kota kost"
-                name="location"
+                name="city"
                 fullWidth
+                value={formData.city}
                 onChange={handleInputChange}
                 required
               />
@@ -240,6 +239,7 @@ function AddProperties() {
                 placeholder="Masukkan alamat kost"
                 name="address"
                 fullWidth
+                value={formData.address}
                 onChange={handleInputChange}
                 required
               />
@@ -250,7 +250,7 @@ function AddProperties() {
                 type="number"
                 step="0.000001"
                 fullWidth
-                value={formData.latitude} // Bind to formData directly
+                value={formData.latitude}
                 onChange={handleInputChange}
                 required
               />
@@ -261,7 +261,7 @@ function AddProperties() {
                 type="number"
                 step="0.000001"
                 fullWidth
-                value={formData.longitude} // Bind to formData directly
+                value={formData.longitude}
                 onChange={handleInputChange}
                 required
               />
@@ -271,6 +271,7 @@ function AddProperties() {
                 name="price"
                 type="number"
                 fullWidth
+                value={formData.price}
                 onChange={handleInputChange}
                 required
               />
@@ -279,6 +280,7 @@ function AddProperties() {
                 placeholder="Masukkan deskripsi kost"
                 name="description"
                 fullWidth
+                value={formData.description}
                 onChange={handleInputChange}
                 required
               />
@@ -329,7 +331,12 @@ function AddProperties() {
               required
             />
           </div>
-          <Button type="submit" color="success" fullWidth>
+          <Button
+            type="submit"
+            color="success"
+            fullWidth
+            onPress={handleSubmit}
+          >
             Submit
           </Button>
         </form>
@@ -338,4 +345,4 @@ function AddProperties() {
   );
 }
 
-export default AddProperties;
+export default EditProperties;
