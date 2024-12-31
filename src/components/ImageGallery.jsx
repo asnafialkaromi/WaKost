@@ -31,7 +31,7 @@ function ImageGallery({ images, className }) {
           <img
             src={image.url}
             alt={`Property Image ${index + 1}`}
-            className="w-full rounded-lg shadow-md"
+            className="aspect-video rounded-lg shadow-md"
           />
         </div>
       ))}
@@ -57,8 +57,10 @@ function ImageGallery({ images, className }) {
             <img
               src={image.url}
               alt={`Thumbnail ${index + 1}`}
-              className={`cursor-pointer w-20 opacity-60 hover:opacity-100 ${
-                slideIndex === index + 1 ? "border-2 border-primary" : ""
+              className={`cursor-pointer w-20 aspect-video hover:opacity-100 ${
+                slideIndex === index + 1
+                  ? "border-2 border-primary"
+                  : "opacity-60"
               }`}
               onClick={() => currentSlide(index + 1)}
             />

@@ -23,6 +23,7 @@ function NavBar() {
       isMenuOpen={isMenuOpen}
       onMenuOpenChange={setIsMenuOpen}
       variant="sticky"
+      maxWidth="xl"
     >
       <NavbarContent>
         <NavbarMenuToggle
