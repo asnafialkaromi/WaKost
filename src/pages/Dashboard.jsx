@@ -19,6 +19,7 @@ import {
   useDisclosure,
 } from "@nextui-org/react";
 import { supabase } from "../api/supabaseClient";
+import formatDate from "../utils/dateFormatter";
 
 function Dashboard() {
   const [stats, setStats] = useState({
@@ -29,6 +30,35 @@ function Dashboard() {
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [deleteRecommendationId, setDeleteRecommendationId] = useState(null);
+  const {
+    isOpen: isDeleteModalOpen,
+    onOpen: onDeleteModalOpen,
+    onClose: onDeleteModalClose,
+  } = useDisclosure();
+
+  // Hapus rekomendasi dari database
+  const deleteRecommendation = async () => {
+    try {
+      if (!deleteRecommendationId) return;
+      const { error } = await supabase
+        .from("recommendations")
+        .delete()
+        .eq("id", deleteRecommendationId);
+
+      if (error) throw error;
+      fetchRecommendations();
+      onDeleteModalClose();
+    } catch (error) {
+      console.error("Error deleting recommendation:", error.message);
+    }
+  };
+
+  // Buka modal konfirmasi
+  const handleDeleteClick = (id) => {
+    setDeleteRecommendationId(id);
+    onDeleteModalOpen();
+  };
 
   // Fetch data count for cards
   const fetchStats = async () => {
@@ -54,8 +84,11 @@ function Dashboard() {
     try {
       const { data, error } = await supabase
         .from("recommendations")
-        .select("id, property_id, created_at");
+        .select(
+          "id, property_id, created_at, properties (name, city, address, property_type)"
+        );
       if (error) throw error;
+      console.log(data);
       setRecommendations(data || []);
     } catch (error) {
       console.error("Error fetching recommendations:", error.message);
@@ -79,10 +112,30 @@ function Dashboard() {
   // Add property to recommendations
   const addRecommendation = async (property) => {
     try {
+      // Cek apakah data sudah ada
+      const { data: existingRecommendation, error: fetchError } = await supabase
+        .from("recommendations")
+        .select("*")
+        .eq("property_id", property.id)
+        .single();
+
+      if (fetchError && fetchError.code !== "PGRST116") {
+        console.error("Error fetching recommendations:", fetchError.message);
+        return;
+      }
+
+      if (existingRecommendation) {
+        alert("Properti ini sudah ada di rekomendasi.");
+        return;
+      }
+
+      // Jika tidak ada, tambahkan rekomendasi baru
       const { error } = await supabase.from("recommendations").insert({
         property_id: property.id,
       });
+
       if (error) throw error;
+
       fetchRecommendations();
       onClose();
     } catch (error) {
@@ -107,7 +160,7 @@ function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-6">
           <Card>
             <CardHeader className="justify-center">
-              <h2 className="text-xl font-bold">Total Properties</h2>
+              <h2 className="text-xl font-bold">Data Properties</h2>
             </CardHeader>
             <CardBody className="text-center">
               <p className="text-3xl">{stats.properties}</p>
@@ -116,7 +169,7 @@ function Dashboard() {
 
           <Card>
             <CardHeader className="justify-center">
-              <h2 className="text-xl font-bold">Total Recommendations</h2>
+              <h2 className="text-xl font-bold">Data Rekomendasi</h2>
             </CardHeader>
             <CardBody className="text-center">
               <p className="text-3xl">{stats.recommendations}</p>
@@ -127,7 +180,7 @@ function Dashboard() {
         {/* Recommendations Table */}
         <div className="bg-white shadow rounded-lg p-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold">Recommendations</h2>
+            <h2 className="text-2xl font-bold">Rekomendasi</h2>
             <Button color="primary" onPress={onOpen}>
               Tambah Rekomendasi
             </Button>
@@ -138,16 +191,28 @@ function Dashboard() {
           ) : (
             <Table>
               <TableHeader>
-                <TableColumn>ID</TableColumn>
-                <TableColumn>Properti ID</TableColumn>
-                <TableColumn>Create Date</TableColumn>
+                <TableColumn>Nama Kost</TableColumn>
+                <TableColumn>Kota</TableColumn>
+                <TableColumn>Alamat</TableColumn>
+                <TableColumn>Tanggal dibuat</TableColumn>
+                <TableColumn>Aksi</TableColumn>
               </TableHeader>
               <TableBody>
                 {recommendations.map((rec) => (
                   <TableRow key={rec.id}>
-                    <TableCell>{rec.id}</TableCell>
-                    <TableCell>{rec.property_id}</TableCell>
-                    <TableCell>{rec.created_at}</TableCell>
+                    <TableCell>{rec.properties.name}</TableCell>
+                    <TableCell>{rec.properties.city}</TableCell>
+                    <TableCell>{rec.properties.address}</TableCell>
+                    <TableCell>{formatDate(rec.created_at)}</TableCell>
+                    <TableCell>
+                      <Button
+                        color="danger"
+                        size="sm"
+                        onClick={() => handleDeleteClick(rec.id)}
+                      >
+                        Hapus
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -157,17 +222,21 @@ function Dashboard() {
       </div>
 
       {/* Add Recommendation Modal */}
-      <Modal backdrop="blur" isOpen={isOpen} onClose={onClose}>
+      <Modal
+        backdrop="blur"
+        isOpen={isOpen}
+        onClose={onClose}
+        className="max-w-2xl"
+      >
         <ModalContent>
           {(onClose) => (
             <>
               <ModalHeader className="flex flex-col gap-1">
-                Add Recommendation
+                Tambah Rekomendasi
               </ModalHeader>
               <ModalBody>
                 <Table>
                   <TableHeader>
-                    <TableColumn>ID</TableColumn>
                     <TableColumn>Name</TableColumn>
                     <TableColumn>City</TableColumn>
                     <TableColumn>Address</TableColumn>
@@ -176,7 +245,6 @@ function Dashboard() {
                   <TableBody>
                     {properties.map((property) => (
                       <TableRow key={property.id}>
-                        <TableCell>{property.id}</TableCell>
                         <TableCell>{property.name}</TableCell>
                         <TableCell>{property.city}</TableCell>
                         <TableCell>{property.address}</TableCell>
@@ -197,6 +265,33 @@ function Dashboard() {
               <ModalFooter>
                 <Button color="danger" variant="light" onPress={onClose}>
                   Close
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+      <Modal
+        backdrop="blur"
+        isOpen={isDeleteModalOpen}
+        onClose={onDeleteModalClose}
+        className="max-w-sm"
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="text-center">
+                Konfirmasi Hapus
+              </ModalHeader>
+              <ModalBody>
+                <p>Apakah Anda yakin ingin menghapus rekomendasi ini?</p>
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="light" onPress={onDeleteModalClose}>
+                  Batal
+                </Button>
+                <Button color="danger" onPress={deleteRecommendation}>
+                  Hapus
                 </Button>
               </ModalFooter>
             </>

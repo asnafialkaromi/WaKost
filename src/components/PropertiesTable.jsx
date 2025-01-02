@@ -51,10 +51,33 @@ function PropertiesTable() {
     if (!selectedProperty) return;
 
     try {
+      // Menghapus gambar dari folder storage berdasarkan property ID
+      const { data: images, error: imageFetchError } = await supabase
+        .from("images") // Ganti 'image' dengan nama tabel Anda
+        .select("url")
+        .eq("property_id", selectedProperty.id);
+
+      if (imageFetchError) {
+        console.error("Error fetching images:", imageFetchError.message);
+        return;
+      }
+
+      // Menghapus file dari storage berdasarkan linkUrl
+      if (images.length > 0) {
+        const deletePromises = images.map(({ url }) => {
+          // Mendapatkan path dari URL
+          const path = url.split("/property-images/")[1]; // Contoh: "folder/image.jpg"
+          return supabase.storage.from("property-images").remove([path]); // Ganti 'images' dengan nama bucket Anda
+        });
+        await Promise.all(deletePromises);
+      }
+
+      // Menghapus properti dari tabel
       await supabase.from("properties").delete().eq("id", selectedProperty.id);
+
       fetchProperties();
     } catch (error) {
-      console.error("Error deleting property:", error.message);
+      console.error("Error deleting property or images:", error.message);
     } finally {
       onClose();
       setSelectedProperty(null);
@@ -94,11 +117,11 @@ function PropertiesTable() {
       ) : (
         <Table>
           <TableHeader>
-            <TableColumn>Name</TableColumn>
-            <TableColumn>City</TableColumn>
-            <TableColumn>Address</TableColumn>
-            <TableColumn>Price</TableColumn>
-            <TableColumn>Action</TableColumn>
+            <TableColumn>Nama Kost</TableColumn>
+            <TableColumn>Kots</TableColumn>
+            <TableColumn>Alamat</TableColumn>
+            <TableColumn>Harga</TableColumn>
+            <TableColumn>Aksi</TableColumn>
           </TableHeader>
           <TableBody>
             {properties.map((property) => (
