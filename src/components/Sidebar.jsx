@@ -51,8 +51,9 @@ const Sidebar = () => {
             as={Link}
             to="/dashboard"
             color="primary"
-            className="my-2"
-            size="sm"
+            variant="light"
+            className="my-2 bg-gray-700 text-white"
+            size="md"
           >
             Dashboard
           </Button>
@@ -60,12 +61,20 @@ const Sidebar = () => {
             as={Link}
             to="/properties"
             color="primary"
-            className="my-2"
-            size="sm"
+            variant="light"
+            className="my-2 bg-gray-700 text-white"
+            size="md"
           >
             Properties
           </Button>
-          <Button as={Link} to="/" color="primary" className="my-2" size="sm">
+          <Button
+            as={Link}
+            to="/"
+            color="primary"
+            variant="light"
+            className="my-2 bg-gray-700 text-white"
+            size="md"
+          >
             Logout
           </Button>
         </div>
