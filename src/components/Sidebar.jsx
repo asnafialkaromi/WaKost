@@ -69,8 +69,28 @@ const Sidebar = () => {
           </Button>
           <Button
             as={Link}
-            to="/"
+            to="/facilities"
             color="primary"
+            variant="light"
+            className="my-2 bg-gray-700 text-white"
+            size="md"
+          >
+            Fasilitas
+          </Button>
+          <Button
+            as={Link}
+            to="/faq-data"
+            color="primary"
+            variant="light"
+            className="my-2 bg-gray-700 text-white"
+            size="md"
+          >
+            FAQ
+          </Button>
+          <Button
+            as={Link}
+            to="/"
+            color="danger"
             variant="light"
             className="my-2 bg-gray-700 text-white"
             size="md"

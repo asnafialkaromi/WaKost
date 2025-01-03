@@ -25,6 +25,7 @@ function Dashboard() {
   const [stats, setStats] = useState({
     properties: 0,
     recommendations: 0,
+    facilities: 0,
   });
   const [properties, setProperties] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
@@ -63,15 +64,20 @@ function Dashboard() {
   // Fetch data count for cards
   const fetchStats = async () => {
     try {
-      const [{ count: propertiesCount }, { count: recommendationsCount }] =
-        await Promise.all([
-          supabase.from("properties").select("id", { count: "exact" }),
-          supabase.from("recommendations").select("id", { count: "exact" }),
-        ]);
+      const [
+        { count: propertiesCount },
+        { count: recommendationsCount },
+        { count: facilitiesCount },
+      ] = await Promise.all([
+        supabase.from("properties").select("id", { count: "exact" }),
+        supabase.from("recommendations").select("id", { count: "exact" }),
+        supabase.from("facilities").select("id", { count: "exact" }),
+      ]);
 
       setStats({
         properties: propertiesCount || 0,
         recommendations: recommendationsCount || 0,
+        facilities: facilitiesCount || 0,
       });
     } catch (error) {
       console.error("Error fetching stats:", error.message);
@@ -157,19 +163,37 @@ function Dashboard() {
       <div className="p-4 sm:ml-64 mt-16">
         <h1 className="text-2xl font-bold">Dashboard</h1>
         {/* Dashboard Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-6">
-          <Card>
+        <div className="grid grid-cols-2 lg:grid-cols-4 w-full gap-6 my-6">
+          <Card className="w-full p-2">
             <CardHeader className="justify-center">
-              <h2 className="text-xl font-bold">Data Properties</h2>
+              <h2 className="text-xl font-bold">Data Kos</h2>
             </CardHeader>
             <CardBody className="text-center">
               <p className="text-3xl">{stats.properties}</p>
             </CardBody>
           </Card>
 
-          <Card>
+          <Card className="w-full p-2">
             <CardHeader className="justify-center">
               <h2 className="text-xl font-bold">Data Rekomendasi</h2>
+            </CardHeader>
+            <CardBody className="text-center">
+              <p className="text-3xl">{stats.recommendations}</p>
+            </CardBody>
+          </Card>
+
+          <Card className="w-full p-2">
+            <CardHeader className="justify-center">
+              <h2 className="text-xl font-bold">Data Fasilitas</h2>
+            </CardHeader>
+            <CardBody className="text-center">
+              <p className="text-3xl">{stats.facilities}</p>
+            </CardBody>
+          </Card>
+
+          <Card className="w-full p-2">
+            <CardHeader className="justify-center">
+              <h2 className="text-xl font-bold">Data FAQ's</h2>
             </CardHeader>
             <CardBody className="text-center">
               <p className="text-3xl">{stats.recommendations}</p>
