@@ -1,12 +1,25 @@
 import { Button } from "@nextui-org/react";
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { supabase } from "../../api/supabaseClient";
 
 const Sidebar = () => {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
+  };
+
+  const handleLogout = async (e) => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error("Error logging out:", error.message);
+    }
+    toast.success("Logout Berhasil", {
+      onClose: () => navigate("/"),
+    });
   };
 
   return (
@@ -15,7 +28,7 @@ const Sidebar = () => {
       <nav className="fixed top-0 left-0 md:left-64 right-0 bg-white text-black p-4 shadow-md z-50">
         <div className="flex items-center gap-4 z-50">
           <Button
-            onClick={toggleSidebar}
+            onPress={toggleSidebar}
             auto
             size="sm"
             className=" text-white bg-blue-500 rounded-md md:hidden min-w-4"
@@ -69,11 +82,30 @@ const Sidebar = () => {
           </Button>
           <Button
             as={Link}
-            to="/"
+            to="/facilities"
             color="primary"
             variant="light"
             className="my-2 bg-gray-700 text-white"
             size="md"
+          >
+            Fasilitas
+          </Button>
+          <Button
+            as={Link}
+            to="/faq-data"
+            color="primary"
+            variant="light"
+            className="my-2 bg-gray-700 text-white"
+            size="md"
+          >
+            FAQ
+          </Button>
+          <Button
+            color="danger"
+            variant="light"
+            className="my-2 bg-gray-700 text-white"
+            size="md"
+            onPress={handleLogout}
           >
             Logout
           </Button>

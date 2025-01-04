@@ -1,304 +1,126 @@
-import React, { useEffect, useState } from "react";
-import Sidebar from "../components/SideBar";
+import React, { Fragment, useEffect, useState } from "react";
+import { Button } from "@nextui-org/react";
+import { useDashboardData } from "../hooks/useDashboardData";
+import Sidebar from "../components/common/Sidebar";
+import StatsCard from "../components/specific/dashboard/StatsCard";
+import RecommendationTable from "../components/specific/dashboard/RecommendationsTable";
+import AddRecomendationModal from "../components/specific/dashboard/AddRecommendationModal";
+import ConfirmationModal from "../components/common/ConfirmationModal";
 import {
-  Button,
-  Card,
-  CardBody,
-  CardHeader,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  Table,
-  TableBody,
-  TableCell,
-  TableColumn,
-  TableHeader,
-  TableRow,
-  useDisclosure,
-} from "@nextui-org/react";
-import { supabase } from "../api/supabaseClient";
-import formatDate from "../utils/dateFormatter";
+  deleteRecommendation,
+  fetchRecommendations,
+} from "../api/recommendationAPI";
+import { Bounce, toast, ToastContainer } from "react-toastify";
+import TableSkeletonRecommendation from "../components/specific/dashboard/TableSkeletonRecommendation";
 
 function Dashboard() {
-  const [stats, setStats] = useState({
-    properties: 0,
-    recommendations: 0,
-  });
-  const [properties, setProperties] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const { isOpen, onOpen, onClose } = useDisclosure();
   const [deleteRecommendationId, setDeleteRecommendationId] = useState(null);
-  const {
-    isOpen: isDeleteModalOpen,
-    onOpen: onDeleteModalOpen,
-    onClose: onDeleteModalClose,
-  } = useDisclosure();
+  const { stats, loadingStats } = useDashboardData();
+  const [loading, setLoading] = useState(false);
+  const [loadingDelete, setLoadingDelete] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  // Hapus rekomendasi dari database
-  const deleteRecommendation = async () => {
-    try {
-      if (!deleteRecommendationId) return;
-      const { error } = await supabase
-        .from("recommendations")
-        .delete()
-        .eq("id", deleteRecommendationId);
-
-      if (error) throw error;
-      fetchRecommendations();
-      onDeleteModalClose();
-    } catch (error) {
-      console.error("Error deleting recommendation:", error.message);
+  const handleDeleteRecommendation = async () => {
+    if (!deleteRecommendationId) return;
+    setLoadingDelete(true);
+    const response = await deleteRecommendation(deleteRecommendationId);
+    if (response.success) {
+      toast.success(response.message);
+      setDeleteRecommendationId(null);
+      setLoadingDelete(false);
+      loadRecommendations();
+    } else {
+      toast.error(response.message);
+      setLoadingDelete(false);
     }
+    closeDeleteModal();
   };
 
-  // Buka modal konfirmasi
   const handleDeleteClick = (id) => {
     setDeleteRecommendationId(id);
-    onDeleteModalOpen();
+    setIsDeleteModalOpen(true);
   };
 
-  // Fetch data count for cards
-  const fetchStats = async () => {
-    try {
-      const [{ count: propertiesCount }, { count: recommendationsCount }] =
-        await Promise.all([
-          supabase.from("properties").select("id", { count: "exact" }),
-          supabase.from("recommendations").select("id", { count: "exact" }),
-        ]);
-
-      setStats({
-        properties: propertiesCount || 0,
-        recommendations: recommendationsCount || 0,
-      });
-    } catch (error) {
-      console.error("Error fetching stats:", error.message);
-    }
+  const closeDeleteModal = () => {
+    setDeleteRecommendationId(null);
+    setIsDeleteModalOpen(false);
   };
 
-  // Fetch recommendations data
-  const fetchRecommendations = async () => {
+  const loadRecommendations = async () => {
     setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("recommendations")
-        .select(
-          "id, property_id, created_at, properties (name, city, address, property_type)"
-        );
-      if (error) throw error;
-      console.log(data);
-      setRecommendations(data || []);
-    } catch (error) {
-      console.error("Error fetching recommendations:", error.message);
-    } finally {
-      setLoading(false);
+    const response = await fetchRecommendations();
+
+    if (response.success) {
+      setRecommendations(response.data);
+    } else {
+      toast.error(response.message);
     }
+    setLoading(false);
   };
 
-  const fetchProperties = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("properties")
-        .select("id, name, city, address");
-      if (error) throw error;
-      setProperties(data || []);
-    } catch (error) {
-      console.error("Error fetching properties:", error.message);
-    }
-  };
-
-  // Add property to recommendations
-  const addRecommendation = async (property) => {
-    try {
-      // Cek apakah data sudah ada
-      const { data: existingRecommendation, error: fetchError } = await supabase
-        .from("recommendations")
-        .select("*")
-        .eq("property_id", property.id)
-        .single();
-
-      if (fetchError && fetchError.code !== "PGRST116") {
-        console.error("Error fetching recommendations:", fetchError.message);
-        return;
-      }
-
-      if (existingRecommendation) {
-        alert("Properti ini sudah ada di rekomendasi.");
-        return;
-      }
-
-      // Jika tidak ada, tambahkan rekomendasi baru
-      const { error } = await supabase.from("recommendations").insert({
-        property_id: property.id,
-      });
-
-      if (error) throw error;
-
-      fetchRecommendations();
-      onClose();
-    } catch (error) {
-      console.error("Error adding recommendation:", error.message);
+  const updateRecommendationData = (success) => {
+    if (success) {
+      loadRecommendations();
     }
   };
 
   useEffect(() => {
-    fetchProperties();
-    fetchStats();
-    fetchRecommendations();
+    loadRecommendations();
   }, []);
 
   return (
-    <>
+    <div className="flex">
       <Sidebar />
-
-      {/* Main Content */}
-      <div className="p-4 sm:ml-64 mt-16">
+      <main className="p-4 sm:ml-64 mt-16 w-full">
         <h1 className="text-2xl font-bold">Dashboard</h1>
-        {/* Dashboard Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-6">
-          <Card>
-            <CardHeader className="justify-center">
-              <h2 className="text-xl font-bold">Data Properties</h2>
-            </CardHeader>
-            <CardBody className="text-center">
-              <p className="text-3xl">{stats.properties}</p>
-            </CardBody>
-          </Card>
-
-          <Card>
-            <CardHeader className="justify-center">
-              <h2 className="text-xl font-bold">Data Rekomendasi</h2>
-            </CardHeader>
-            <CardBody className="text-center">
-              <p className="text-3xl">{stats.recommendations}</p>
-            </CardBody>
-          </Card>
-        </div>
-
-        {/* Recommendations Table */}
-        <div className="bg-white shadow rounded-lg p-6">
+        <StatsCard stats={stats} loadingStats={loadingStats} />
+        <div className="bg-white shadow rounded-lg p-6 mt-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold">Rekomendasi</h2>
-            <Button color="primary" onPress={onOpen}>
+            <Button color="primary" onClick={() => setIsAddModalOpen(true)}>
               Tambah Rekomendasi
             </Button>
           </div>
-
           {loading ? (
-            <p>Loading rekomendasi...</p>
+            <TableSkeletonRecommendation />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableColumn>Nama Kost</TableColumn>
-                <TableColumn>Kota</TableColumn>
-                <TableColumn>Alamat</TableColumn>
-                <TableColumn>Tanggal dibuat</TableColumn>
-                <TableColumn>Aksi</TableColumn>
-              </TableHeader>
-              <TableBody>
-                {recommendations.map((rec) => (
-                  <TableRow key={rec.id}>
-                    <TableCell>{rec.properties.name}</TableCell>
-                    <TableCell>{rec.properties.city}</TableCell>
-                    <TableCell>{rec.properties.address}</TableCell>
-                    <TableCell>{formatDate(rec.created_at)}</TableCell>
-                    <TableCell>
-                      <Button
-                        color="danger"
-                        size="sm"
-                        onClick={() => handleDeleteClick(rec.id)}
-                      >
-                        Hapus
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <RecommendationTable
+              loading={loadingDelete}
+              recommendations={recommendations}
+              onDeleteClick={handleDeleteClick}
+            />
           )}
         </div>
-      </div>
-
-      {/* Add Recommendation Modal */}
-      <Modal
-        backdrop="blur"
-        isOpen={isOpen}
-        onClose={onClose}
-        className="max-w-2xl"
-      >
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1">
-                Tambah Rekomendasi
-              </ModalHeader>
-              <ModalBody>
-                <Table>
-                  <TableHeader>
-                    <TableColumn>Name</TableColumn>
-                    <TableColumn>City</TableColumn>
-                    <TableColumn>Address</TableColumn>
-                    <TableColumn>Action</TableColumn>
-                  </TableHeader>
-                  <TableBody>
-                    {properties.map((property) => (
-                      <TableRow key={property.id}>
-                        <TableCell>{property.name}</TableCell>
-                        <TableCell>{property.city}</TableCell>
-                        <TableCell>{property.address}</TableCell>
-                        <TableCell>
-                          <Button
-                            color="success"
-                            size="sm"
-                            onPress={() => addRecommendation(property)}
-                          >
-                            Add
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </ModalBody>
-              <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Close
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
-      <Modal
-        backdrop="blur"
-        isOpen={isDeleteModalOpen}
-        onClose={onDeleteModalClose}
-        className="max-w-sm"
-      >
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="text-center">
-                Konfirmasi Hapus
-              </ModalHeader>
-              <ModalBody>
-                <p>Apakah Anda yakin ingin menghapus rekomendasi ini?</p>
-              </ModalBody>
-              <ModalFooter>
-                <Button variant="light" onPress={onDeleteModalClose}>
-                  Batal
-                </Button>
-                <Button color="danger" onPress={deleteRecommendation}>
-                  Hapus
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
-    </>
+        <AddRecomendationModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onRecommendationAdded={updateRecommendationData}
+        />
+      </main>
+      <Fragment>
+        <ConfirmationModal
+          isOpen={isDeleteModalOpen}
+          loading={loadingDelete}
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={handleDeleteRecommendation}
+          message="Apakah Anda yakin ingin menghapus rekomendasi ini?"
+        />
+      </Fragment>
+      <ToastContainer
+        position="top-center"
+        autoClose={1500}
+        hideProgressBar
+        newestOnTop={false}
+        closeOnClick={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+        transition={Bounce}
+      />
+    </div>
   );
 }
 

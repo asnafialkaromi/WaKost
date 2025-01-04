@@ -15,13 +15,15 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
+  Form,
 } from "@nextui-org/react";
 import { useParams, useNavigate } from "react-router-dom";
-import Sidebar from "../components/SideBar";
+import Sidebar from "../components/common/Sidebar";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { supabase } from "../api/supabaseClient";
+import { Bounce, toast, ToastContainer } from "react-toastify";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -41,6 +43,7 @@ function EditProperties() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState(null);
   const [onConfirmDelete, setOnConfirmDelete] = useState(null);
+  const [loadingButton, setLoadingButton] = useState(false);
 
   const openModal = (imageUrl, onConfirm) => {
     setSelectedImageUrl(imageUrl);
@@ -71,11 +74,9 @@ function EditProperties() {
   const [clickedLocation, setClickedLocation] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch property data and facilities on component mount
   useEffect(() => {
     const fetchPropertyDetails = async () => {
       try {
-        // Fetch property details
         const { data: property, error: propertyError } = await supabase
           .from("properties")
           .select(
@@ -96,7 +97,6 @@ function EditProperties() {
           return;
         }
 
-        // Fetch facilities
         const { data: facilities, error: facilitiesError } = await supabase
           .from("facilities")
           .select("id, name, facilities_type");
@@ -152,9 +152,7 @@ function EditProperties() {
 
   const handleRemoveImage = (index, previewType, imageUrl) => {
     if (previewType === "images") {
-      // Buka modal untuk konfirmasi penghapusan
       openModal(imageUrl, () => {
-        // Setelah konfirmasi, hapus gambar dari database dan state
         handleDeleteImageFromDatabase(imageUrl);
         setImagePreviews((prevPreviews) =>
           prevPreviews.filter((_, i) => i !== index)
@@ -169,12 +167,10 @@ function EditProperties() {
 
   const handleDeleteImageFromDatabase = async (imageUrl) => {
     try {
-      // Extract file path from the image URL
       const filePath = imageUrl.split("/").slice(-2).join("/");
 
-      // Delete the file from Supabase Storage
       const { error: storageError } = await supabase.storage
-        .from("property-images") // Replace with your storage bucket name
+        .from("property-images")
         .remove([filePath]);
 
       if (storageError) {
@@ -185,8 +181,6 @@ function EditProperties() {
         alert("Failed to delete image from storage.");
         return;
       }
-
-      // Delete the image record from the database
       const { error: dbError } = await supabase
         .from("images")
         .delete()
@@ -205,6 +199,7 @@ function EditProperties() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoadingButton(true);
     try {
       const {
         name,
@@ -220,7 +215,6 @@ function EditProperties() {
       } = formData;
 
       console.log("Submitting Form Data:", formData);
-      // Update property details
       const { data: property, error } = await supabase
         .from("properties")
         .update({
@@ -237,10 +231,10 @@ function EditProperties() {
 
       if (error) {
         console.error("Error updating property:", error);
+        toast.error("Gagal memperbarui data Kos");
         return;
       }
 
-      // Update facilities
       await supabase.from("property_facilities").delete().eq("property_id", id);
       const facilityData = facilities.map((facilityId) => ({
         property_id: id,
@@ -254,13 +248,12 @@ function EditProperties() {
         for (let index = 0; index < images.length; index++) {
           const image = images[index];
 
-          // Ganti nama file dengan urutan indeks
           const fileName = `image-${Date.now()}-${Math.random()
             .toString(36)
             .substr(2, 9)}${image.name.slice(image.name.lastIndexOf("."))}`;
 
           const { data: imageData, error: uploadError } = await supabase.storage
-            .from("property-images") // Replace with your storage bucket name
+            .from("property-images")
             .upload(`property-${id}/${fileName}`, image);
 
           console.log("Image data:", fileName);
@@ -289,12 +282,14 @@ function EditProperties() {
           console.log("Image added successfully:", imageUrl);
         }
       }
-
-      alert("Property updated successfully!");
-      navigate("/properties");
+      setLoadingButton(false);
+      toast.success("Properti berhasil diperbarui", {
+        onClose: () => navigate("/properties"),
+      });
     } catch (error) {
       console.error("Error updating property:", error.message);
-      alert("Failed to update property. Please try again.");
+      toast.error("Gagal memperbarui data Kos");
+      setLoadingButton(false);
     }
   };
 
@@ -371,8 +366,9 @@ function EditProperties() {
           <BreadcrumbItem>Edit Property</BreadcrumbItem>
         </Breadcrumbs>
 
-        <form
+        <Form
           onSubmit={handleSubmit}
+          validationBehavior="native"
           className="flex flex-col w-full gap-12 justify-center"
         >
           <div className="flex flex-col sm:flex-row justify-center gap-10 w-full">
@@ -380,6 +376,7 @@ function EditProperties() {
               <Input
                 label="Nama Kost"
                 placeholder="Masukkan nama kost"
+                errorMessage="Nama kost harus diisi"
                 name="name"
                 fullWidth
                 value={formData.name}
@@ -391,6 +388,7 @@ function EditProperties() {
                 label="Tipe Kost"
                 name="property_type"
                 placeholder="Pilih Tipe Kost"
+                errorMessage="Tipe kost harus dipilih"
                 fullWidth
                 selectedKeys={[formData.property_type]}
                 onChange={handleInputChange}
@@ -404,6 +402,7 @@ function EditProperties() {
               <Input
                 label="Kota"
                 placeholder="Masukkan kota kost"
+                errorMessage="Kota kost harus diisi"
                 name="city"
                 fullWidth
                 value={formData.city}
@@ -414,6 +413,7 @@ function EditProperties() {
               <Input
                 label="Alamat"
                 placeholder="Masukkan alamat kost"
+                errorMessage="Alamat kost harus diisi"
                 name="address"
                 fullWidth
                 value={formData.address}
@@ -424,6 +424,7 @@ function EditProperties() {
               <Input
                 label="Latitude"
                 placeholder="Masukkan latitude"
+                errorMessage="Latitude kost harus diisi"
                 name="latitude"
                 type="number"
                 step="0.000001"
@@ -436,6 +437,7 @@ function EditProperties() {
               <Input
                 label="Longitude"
                 placeholder="Masukkan longitude"
+                errorMessage="Longitude kost harus diisi"
                 name="longitude"
                 type="number"
                 step="0.000001"
@@ -448,6 +450,7 @@ function EditProperties() {
               <Input
                 label="Harga"
                 placeholder="Masukkan harga kost"
+                errorMessage="Harga kost harus diisi"
                 name="price"
                 type="number"
                 fullWidth
@@ -459,6 +462,7 @@ function EditProperties() {
               <Textarea
                 label="Deskripsi"
                 placeholder="Masukkan deskripsi kost"
+                errorMessage="Deskripsi kost harus diisi"
                 name="description"
                 fullWidth
                 value={formData.description}
@@ -484,7 +488,7 @@ function EditProperties() {
           </div>
 
           {/* Facilities Checkbox Group */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
             <div>
               <h3 className="text-xl font-semibold mb-4">Fasilitas Kamar</h3>
               <CheckboxGroup
@@ -567,11 +571,29 @@ function EditProperties() {
               ))}
             </div>
           </div>
-          <Button type="submit" color="success" fullWidth>
+          <Button
+            type="submit"
+            color="success"
+            fullWidth
+            isLoading={loadingButton}
+            className="text-white"
+          >
             Submit
           </Button>
-        </form>
+        </Form>
       </div>
+      <ToastContainer
+        position="top-center"
+        autoClose={1000}
+        hideProgressBar
+        newestOnTop={false}
+        closeOnClick={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+        transition={Bounce}
+      />
     </>
   );
 }
