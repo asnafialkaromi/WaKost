@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import {
   Input,
   Button,
@@ -10,13 +10,15 @@ import {
   CheckboxGroup,
   Select,
   SelectItem,
+  Form,
 } from "@nextui-org/react";
 import { useNavigate } from "react-router-dom";
-import Sidebar from "../components/SideBar";
+import Sidebar from "../components/common/Sidebar";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { supabase } from "../api/supabaseClient";
+import { Bounce, toast, ToastContainer } from "react-toastify";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -45,18 +47,18 @@ function AddProperties() {
   const [allFacilities, setAllFacilities] = useState([]);
   const [clickedLocation, setClickedLocation] = useState(null);
   const [imagePreviews, setImagePreviews] = useState([]);
+  const [loadingButton, setLoadingButton] = useState(false);
 
   useEffect(() => {
-    // Fetch facilities from the database when the component mounts
     const fetchFacilities = async () => {
       const { data: facilities, error } = await supabase
-        .from("facilities") // Replace with your facilities table name
+        .from("facilities")
         .select("id, name, facilities_type");
 
       if (error) {
         console.error("Error fetching facilities:", error.message);
       } else {
-        setAllFacilities(facilities); // Update state with facilities
+        setAllFacilities(facilities);
       }
     };
 
@@ -90,9 +92,8 @@ function AddProperties() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setLoadingButton(true);
     try {
-      // Destructure formData for easier access
       const {
         name,
         property_type,
@@ -106,7 +107,6 @@ function AddProperties() {
         images,
       } = formData;
 
-      // Insert property data
       const { data: property, error: propertyError } = await supabase
         .from("properties")
         .insert([
@@ -126,15 +126,16 @@ function AddProperties() {
 
       if (propertyError) {
         console.error("Error inserting property:", propertyError.message);
+        toast.error("Failed to add property. Please try again.");
+        setLoadingButton(false);
         return;
       }
 
       console.log("Property added successfully:", property);
 
-      // Insert related facilities for the property
       const facilityData = facilities.map((facility) => ({
         property_id: property.id,
-        facility_id: facility, // Ensure `facility` matches the facility ID in your database
+        facility_id: facility,
       }));
 
       if (facilityData.length > 0) {
@@ -150,18 +151,16 @@ function AddProperties() {
         console.log("Facilities added successfully");
       }
 
-      // Upload images to Supabase storage and save URLs to the database
       if (images && images.length > 0) {
         for (let index = 0; index < images.length; index++) {
           const image = images[index];
 
-          // Ganti nama file dengan urutan indeks
           const fileName = `image-${Date.now()}-${Math.random()
             .toString(36)
             .substr(2, 9)}${image.name.slice(image.name.lastIndexOf("."))}`;
 
           const { data: imageData, error: uploadError } = await supabase.storage
-            .from("property-images") // Replace with your storage bucket name
+            .from("property-images")
             .upload(`property-${property.id}/${fileName}`, image);
 
           if (uploadError) {
@@ -187,12 +186,14 @@ function AddProperties() {
           console.log("Image added successfully:", imageUrl);
         }
       }
-
-      alert("Property added successfully!");
-      navigate("/properties"); // Navigate to properties page after successful submission
+      setLoadingButton(false);
+      toast.success("Data kos berhasil ditambahkan", {
+        onClose: () => navigate("/properties"),
+      });
     } catch (error) {
       console.error("Error submitting form:", error);
-      alert("Failed to add property. Please try again.");
+      toast.error("Gagal menambahkan data kos");
+      setLoadingButton(false);
     }
   };
 
@@ -203,7 +204,7 @@ function AddProperties() {
         setClickedLocation({ latitude: lat, longitude: lng });
         setFormData((prev) => ({
           ...prev,
-          latitude: lat.toFixed(6), // Ensures a consistent precision
+          latitude: lat.toFixed(6),
           longitude: lng.toFixed(6),
         }));
       },
@@ -232,8 +233,9 @@ function AddProperties() {
         </Breadcrumbs>
 
         {/* Form */}
-        <form
+        <Form
           onSubmit={handleSubmit}
+          validationBehavior="native"
           className="flex flex-col w-full gap-12 justify-center"
         >
           <div className="flex flex-col md:flex-row justify-center gap-10 w-full">
@@ -242,6 +244,7 @@ function AddProperties() {
                 label="Nama Kost"
                 name="name"
                 placeholder="Masukkan Nama Kost"
+                errorMessage="Nama Kost harus diisi"
                 fullWidth
                 onChange={handleInputChange}
                 required
@@ -251,6 +254,7 @@ function AddProperties() {
                 label="Tipe Kost"
                 name="type"
                 placeholder="Pilih Tipe Kost"
+                errorMessage="Tipe Kost harus dipilih"
                 fullWidth
                 onChange={handleInputChange}
                 required
@@ -264,6 +268,7 @@ function AddProperties() {
                 label="Kota"
                 name="city"
                 placeholder="Masukkan Nama Kota"
+                errorMessage="Nama Kota harus diisi"
                 fullWidth
                 onChange={handleInputChange}
                 required
@@ -273,6 +278,7 @@ function AddProperties() {
                 label="Alamat"
                 name="address"
                 placeholder="Masukkan Alamat Kost"
+                errorMessage="Alamat Kost harus diisi"
                 fullWidth
                 onChange={handleInputChange}
                 required
@@ -284,7 +290,7 @@ function AddProperties() {
                 type="number"
                 step="0.000001"
                 placeholder="Masukkan Latitude"
-                readOnly
+                errorMessage="Latitude harus dipilih"
                 fullWidth
                 value={formData.latitude}
                 onChange={handleInputChange}
@@ -297,7 +303,7 @@ function AddProperties() {
                 type="number"
                 step="0.000001"
                 placeholder="Masukkan Longitude"
-                readOnly
+                errorMessage="Longitude harus dipilih"
                 fullWidth
                 value={formData.longitude}
                 onChange={handleInputChange}
@@ -309,6 +315,7 @@ function AddProperties() {
                 name="price"
                 type="number"
                 placeholder="Masukkan Harga"
+                errorMessage="Harga harus diisi"
                 fullWidth
                 onChange={handleInputChange}
                 required
@@ -318,6 +325,7 @@ function AddProperties() {
                 label="Deskripsi"
                 name="description"
                 placeholder="Masukkan Deskripsi Kost"
+                errorMessage="Deskripsi Kost harus diisi"
                 fullWidth
                 onChange={handleInputChange}
                 required
@@ -341,7 +349,7 @@ function AddProperties() {
           </div>
 
           {/* Facilities Checkbox Group */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
             <div>
               <h3 className="text-xl font-semibold mb-4">Fasilitas Kamar</h3>
               <CheckboxGroup
@@ -384,6 +392,7 @@ function AddProperties() {
               name="images"
               type="file"
               multiple
+              required
               className="form-control"
               onChange={handleImageChange}
             />
@@ -407,11 +416,31 @@ function AddProperties() {
               ))}
             </div>
           </div>
-          <Button type="submit" color="success" fullWidth>
+          <Button
+            type="submit"
+            color="success"
+            fullWidth
+            isLoading={loadingButton}
+            className="text-white"
+          >
             Submit
           </Button>
-        </form>
+        </Form>
       </div>
+      <Fragment>
+        <ToastContainer
+          position="top-center"
+          autoClose={1000}
+          hideProgressBar
+          newestOnTop={false}
+          closeOnClick={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="colored"
+          transition={Bounce}
+        />
+      </Fragment>
     </>
   );
 }

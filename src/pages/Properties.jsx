@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import Sidebar from "../components/SideBar";
+import Sidebar from "../components/common/Sidebar";
 import { BreadcrumbItem, Breadcrumbs, Button, Link } from "@nextui-org/react";
 import { useNavigate } from "react-router-dom";
 import PropertiesTable from "../components/PropertiesTable";
+import { Bounce, ToastContainer } from "react-toastify";
 
 function Properties() {
   const navigate = useNavigate();
@@ -20,12 +21,24 @@ function Properties() {
             </BreadcrumbItem>
             <BreadcrumbItem>Properties</BreadcrumbItem>
           </Breadcrumbs>
-          <Button color="primary" onClick={() => navigate("/properties/add")}>
+          <Button color="primary" onPress={() => navigate("/properties/add")}>
             Tambah Kost
           </Button>
         </div>
         <PropertiesTable />
       </div>
+      <ToastContainer
+        position="top-center"
+        autoClose={1500}
+        hideProgressBar
+        newestOnTop={false}
+        closeOnClick={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+        transition={Bounce}
+      />
     </>
   );
 }

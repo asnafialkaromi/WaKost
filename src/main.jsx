@@ -15,6 +15,7 @@ import DetailProperties from "./pages/DetailProperties.jsx";
 import EditProperties from "./pages/EditProperties.jsx";
 import Facility from "./pages/Facility.jsx";
 import AddFaq from "./pages/AddFaq.jsx";
+import Login from "./pages/Login.jsx";
 
 const router = createBrowserRouter([
   {
@@ -52,6 +53,10 @@ const router = createBrowserRouter([
   {
     path: "/faq-data",
     element: <AddFaq />,
+  },
+  {
+    path: "/login",
+    element: <Login />,
   },
 ]);
 

@@ -5,6 +5,7 @@ import {
   BreadcrumbItem,
   Breadcrumbs,
   Button,
+  Form,
   Input,
   Link,
   Modal,
@@ -14,6 +15,7 @@ import {
   ModalHeader,
   Select,
   SelectItem,
+  Skeleton,
   Table,
   TableBody,
   TableCell,
@@ -22,7 +24,9 @@ import {
   TableRow,
   useDisclosure,
 } from "@nextui-org/react";
-import Sidebar from "../components/SideBar";
+import Sidebar from "../components/common/Sidebar";
+import { Bounce, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 
 const Facility = () => {
   const {
@@ -38,8 +42,12 @@ const Facility = () => {
   const [facilities, setFacilities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedFacility, setSelectedFacility] = useState(null);
-
-  const [newFacility, setNewFacility] = useState({ name: "", description: "" });
+  const [loadingButton, setLoadingButton] = useState(false);
+  const [newFacility, setNewFacility] = useState({
+    name: "",
+    facilities_type: "",
+    icon_url: "",
+  });
   const [iconFile, setIconFile] = useState(null);
   const [iconPreview, setIconPreview] = useState(null);
 
@@ -88,7 +96,9 @@ const Facility = () => {
       .from("property-images")
       .upload(`Icons/${fileName}`, iconFile);
 
-    if (error) throw new Error(error.message);
+    if (error) {
+      alert("Failed to upload icon. Please try again.");
+    }
 
     const imageUrl = `${
       supabase.storage.from("property-images").getPublicUrl(data.path).data
@@ -98,7 +108,9 @@ const Facility = () => {
     return `${imageUrl}`;
   };
 
-  const addFacility = async () => {
+  const addFacility = async (e) => {
+    e.preventDefault();
+    setLoadingButton(true);
     try {
       const uploadedIconUrl = await uploadIcon();
       const { error } = await supabase.from("facilities").insert([
@@ -108,30 +120,45 @@ const Facility = () => {
           icon_url: uploadedIconUrl,
         },
       ]);
-
-      if (error) throw new Error(error.message);
-
+      if (error) {
+        console.error("Error adding facility:", error.message);
+        setLoadingButton(false);
+        alert("gagal menambahakan fasilata");
+        toast.error("Gagal menambahkan fasilitas");
+        return;
+      }
+      console.log("Fasilitas berhasil ditambahkan");
+      setLoadingButton(false);
       fetchFacilities();
-      onAddClose();
       setNewFacility({ name: "", facilities_type: "", icon_url: "" });
       setIconFile(null);
       setIconPreview(null);
+      onAddClose();
+      toast.success("Fasilitas berhasil ditambahkan");
     } catch (error) {
       console.error("Error adding facility:", error.message);
+      toast.error("Gagal menambahkan fasilitas");
     }
   };
 
   const deleteFacility = async () => {
     if (!selectedFacility) return;
+    setLoadingButton(true);
+    const { error } = await supabase
+      .from("facilities")
+      .delete()
+      .eq("id", selectedFacility.id);
 
-    try {
-      await supabase.from("facilities").delete().eq("id", selectedFacility.id);
-      fetchFacilities();
-    } catch (error) {
+    if (error) {
       console.error("Error deleting facility:", error.message);
-    } finally {
+      toast.error("Gagal menghapus fasilitas");
+      setLoadingButton(false);
       onDeleteClose();
-      setSelectedFacility(null);
+    } else {
+      fetchFacilities();
+      setLoadingButton(false);
+      onDeleteClose();
+      toast.success("Fasilitas berhasil dihapus");
     }
   };
 
@@ -152,7 +179,7 @@ const Facility = () => {
             </BreadcrumbItem>
             <BreadcrumbItem>Fasilitas</BreadcrumbItem>
           </Breadcrumbs>
-          <Button color="primary" onClick={onAddOpen}>
+          <Button color="primary" onPress={onAddOpen}>
             Tambah Fasilitas
           </Button>
         </div>
@@ -172,7 +199,11 @@ const Facility = () => {
                   <Button color="warning" variant="light" onPress={onClose}>
                     Close
                   </Button>
-                  <Button color="danger" onPress={() => deleteFacility()}>
+                  <Button
+                    color="danger"
+                    onPress={() => deleteFacility()}
+                    isLoading={loadingButton}
+                  >
                     Delete
                   </Button>
                 </ModalFooter>
@@ -189,11 +220,12 @@ const Facility = () => {
                 <ModalHeader className="flex flex-col gap-1">
                   Tambah Fasilitas
                 </ModalHeader>
-                <ModalBody>
-                  <div className="flex flex-col gap-4">
+                <Form validationBehavior="native" onSubmit={addFacility}>
+                  <ModalBody className="w-full">
                     <Input
                       label="Nama Fasilitas"
                       placeholder="Masukkan nama fasilitas"
+                      errorMessage="Nama fasilitas harus diisi"
                       required
                       isRequired
                       value={newFacility.name}
@@ -207,6 +239,7 @@ const Facility = () => {
                     <Select
                       label="Tipe Fasilitas"
                       placeholder="Pilih tipe fasilitas"
+                      errorMessage="Tipe fasilitas harus diisi"
                       required
                       isRequired
                       onChange={(e) =>
@@ -229,6 +262,7 @@ const Facility = () => {
                         name="icon"
                         type="file"
                         className="form-control"
+                        required
                         onChange={handleImageChange}
                       />
                       {iconPreview && (
@@ -248,28 +282,56 @@ const Facility = () => {
                         </div>
                       )}
                     </div>
-                  </div>
-                </ModalBody>
-                <ModalFooter>
-                  <Button color="warning" variant="light" onPress={onClose}>
-                    Close
-                  </Button>
-                  <Button
-                    color="success"
-                    type="submit"
-                    onPress={() => addFacility()}
-                    className="text-white"
-                  >
-                    Tambah
-                  </Button>
-                </ModalFooter>
+                  </ModalBody>
+                  <ModalFooter className="w-full">
+                    <Button color="warning" variant="light" onPress={onClose}>
+                      Close
+                    </Button>
+                    <Button
+                      color="success"
+                      type="submit"
+                      className="text-white"
+                      isLoading={loadingButton}
+                    >
+                      Tambah
+                    </Button>
+                  </ModalFooter>
+                </Form>
               </>
             )}
           </ModalContent>
         </Modal>
 
         {loading ? (
-          <div className="text-center py-4">Loading facilities...</div>
+          <Table aria-label="Facilities Table">
+            <TableHeader>
+              <TableColumn>Nama Fasilitas</TableColumn>
+              <TableColumn>Tipe Fasilitas</TableColumn>
+              <TableColumn>Aksi</TableColumn>
+            </TableHeader>
+            <TableBody>
+              {Array(5)
+                .fill()
+                .map((_, index) => (
+                  <TableRow key={index}>
+                    <TableCell>
+                      <div className="w-full flex items-center gap-3">
+                        <div>
+                          <Skeleton className="flex rounded-full w-12 h-12" />
+                        </div>
+                        <Skeleton className="h-6 w-full rounded-lg" />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-6 rounded-lg p-0" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-6 rounded-lg p-0" />
+                    </TableCell>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
         ) : (
           <Table>
             <TableHeader>
@@ -305,6 +367,18 @@ const Facility = () => {
           </Table>
         )}
       </div>
+      <ToastContainer
+        position="top-center"
+        autoClose={1500}
+        hideProgressBar
+        newestOnTop={false}
+        closeOnClick={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+        transition={Bounce}
+      />
     </>
   );
 };
