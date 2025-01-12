@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../api/supabaseClient";
 import { Accordion, AccordionItem, Skeleton } from "@nextui-org/react";
-import NavBar from "../components/Navbar";
 import Footer from "../components/Footer";
+import NavBar from "../components/common/NavBar";
 
 const Faq = () => {
   const [faqs, setFaqs] = useState([]);

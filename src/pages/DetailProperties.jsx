@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import NavBar from "../components/Navbar";
+import NavBar from "../components/common/NavBar";
 import { useParams } from "react-router";
 import { supabase } from "../api/supabaseClient";
 import ImageGallery from "../components/ImageGallery";
