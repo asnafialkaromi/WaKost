@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Navbar,
   NavbarBrand,
@@ -9,13 +9,10 @@ import {
   NavbarItem,
   Link,
   Button,
-  Switch,
 } from "@nextui-org/react";
 
-function NavBar() {
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
-
-  const menuItems = ["Home", "Kost", "About", "FAQ", "Log Out"];
+const NavBar = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
     <Navbar
@@ -95,6 +92,6 @@ function NavBar() {
       </NavbarMenu>
     </Navbar>
   );
-}
+};
 
 export default NavBar;

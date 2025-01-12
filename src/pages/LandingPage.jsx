@@ -1,5 +1,6 @@
 import React from "react";
-import NavBar from "../components/Navbar";
+import NavBar from "../components/common/NavBar";
+
 import HeroSection from "../components/HeroSection";
 import SuggestSection from "../components/SuggestSection";
 import FeatureSection from "../components/FeatureSection";

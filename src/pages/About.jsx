@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import NavBar from "../components/Navbar";
+import NavBar from "../components/common/NavBar";
 import Footer from "../components/Footer";
 import { Image } from "@nextui-org/react";
 import AOS from "aos";
