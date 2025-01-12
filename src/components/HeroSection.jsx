@@ -14,7 +14,7 @@ function HeroSection() {
         {/* Left Side */}
         <div
           className="md:w-1/2 text-left flex flex-col gap-4"
-          data-aos="fade-right"
+          data-aos="fade-up"
         >
           <h1 className="text-2xl md:text-4xl font-bold text-gray-700">
             Cari Tempat Kost dengan Lebih
@@ -24,18 +24,18 @@ function HeroSection() {
             Temukan tempat tinggal sementara anda dengan mudah menggunakan
             website kami
           </p>
-          <Link href="/kost">
-            <Button
-              color="primary"
-              className="font-semibold w-32 md:w-fit px-8"
-            >
-              Cari Sekarang
-            </Button>
-          </Link>
+          <Button
+            as={Link}
+            href="/kost"
+            color="primary"
+            className="font-semibold w-32 md:w-fit px-8"
+          >
+            Cari Sekarang
+          </Button>
         </div>
 
         {/* Right Side */}
-        <div className="md:w-1/3 w-[80%]" data-aos="fade-left">
+        <div className="md:w-1/3 w-[80%]" data-aos="fade-up">
           <Image
             isBlurred
             src="/images/img_3d_house.png"

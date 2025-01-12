@@ -12,7 +12,7 @@ function SuggestSection() {
     <section className="max-w-full h-fit">
       <div className="max-w-7xl h-full flex flex-col md:flex-row items-center justify-center mx-auto py-14 px-4 gap-20">
         {/* Left Side */}
-        <div className="md:w-1/3 w-[80%]" data-aos="fade-right">
+        <div className="md:w-1/3 w-[80%]" data-aos="fade-up">
           <Image
             isBlurred
             src="/images/img_location_phone.png"
@@ -23,7 +23,7 @@ function SuggestSection() {
         {/* Right Side */}
         <div
           className="md:w-1/2 text-left flex flex-col gap-4"
-          data-aos="fade-left"
+          data-aos="fade-up"
         >
           <h1 className="text-xl md:text-3xl font-bold text-[#303a42] text-center">
             Ayo Cari Tempat Kost yang <br /> Cocok dengan Anda

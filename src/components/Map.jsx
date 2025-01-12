@@ -99,7 +99,7 @@ function Map() {
 Data Properti:
 ${JSON.stringify(data)}
 
-Pastikan hasil Anda hanya berupa JSON, tanpa penjelasan tambahan.
+Pastikan hasil Anda hanya berupa JSON dan hanya untuk satu data properti yang paling relevan, tanpa penjelasan tambahan.
 `;
 
       const generationConfig = {
@@ -128,7 +128,6 @@ Pastikan hasil Anda hanya berupa JSON, tanpa penjelasan tambahan.
 
       const result = await chatSession.sendMessage("Cek query berikut:");
       const jsonResponse = JSON.parse(result.response.text());
-      console.log(jsonResponse);
       setAnalysisResult(jsonResponse);
       setLoadingButton(false);
       onOpen();
@@ -183,7 +182,7 @@ Pastikan hasil Anda hanya berupa JSON, tanpa penjelasan tambahan.
           </ModalFooter>
         </ModalContent>
       </Modal>
-      <div className="flex absolute top-20 left-1/2 transform -translate-x-1/2 justify-center w-[70%] md:w-[60%] h-fit items-center gap-4 z-50 bg-white rounded-lg p-2">
+      <div className="flex absolute top-20 left-1/2 transform -translate-x-1/2 justify-center w-[70%] md:w-[60%] h-fit items-center gap-4 z-20 bg-white rounded-lg p-2">
         <Input
           type="text"
           variant="flat"
