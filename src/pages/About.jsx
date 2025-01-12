@@ -42,7 +42,7 @@ function About() {
         <div className="w-fit max-w-7xl h-full flex flex-col md:flex-row items-center justify-center mx-auto py-14 px-4 gap-0">
           <div
             className="flex items-center justify-center w-full md:w-1/4 mb-8"
-            data-aos="fade-right"
+            data-aos="fade-up"
           >
             <Image
               isBlurred
@@ -51,7 +51,7 @@ function About() {
               alt="Location Map"
             />
           </div>
-          <div className="flex flex-col w-full md:w-1/2" data-aos="fade-left">
+          <div className="flex flex-col w-full md:w-1/2" data-aos="fade-up">
             <h2 className="text-xl md:text-3xl font-bold text-center mb-4">
               Fitur Map
             </h2>
@@ -66,7 +66,7 @@ function About() {
       </section>
       <section className="max-w-full h-fit">
         <div className="max-w-7xl h-full flex flex-col md:flex-row items-center justify-center mx-auto py-14 px-4 gap-24">
-          <div className="flex flex-col w-full md:w-1/2" data-aos="fade-right">
+          <div className="flex flex-col w-full md:w-1/2" data-aos="fade-up">
             <h2 className="text-xl md:text-3xl font-bold text-center mb-4">
               Informasi yang Detail
             </h2>
@@ -78,7 +78,7 @@ function About() {
           </div>
           <div
             className="flex items-center justify-center w-full md:w-1/4 mb-8"
-            data-aos="fade-right"
+            data-aos="fade-up"
           >
             <Image
               isBlurred
@@ -93,7 +93,7 @@ function About() {
         <div className="max-w-7xl h-full flex flex-col md:flex-row items-center justify-center mx-auto py-14 px-4 gap-8">
           <div
             className="flex items-center justify-center w-full md:w-1/4 mb-8"
-            data-aos="fade-right"
+            data-aos="fade-up"
           >
             <Image
               isBlurred
@@ -102,7 +102,7 @@ function About() {
               alt="Location Map"
             />
           </div>
-          <div className="flex flex-col w-full md:w-1/2" data-aos="fade-left">
+          <div className="flex flex-col w-full md:w-1/2" data-aos="fade-up">
             <h2 className="text-xl md:text-3xl font-bold text-center mb-4">
               Fitur Pencarian
             </h2>

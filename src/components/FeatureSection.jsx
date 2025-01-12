@@ -14,7 +14,7 @@ function FeatureSection() {
         {/* Left Side */}
         <div
           className="md:w-1/2 text-left flex flex-col gap-4"
-          data-aos="fade-right"
+          data-aos="fade-up"
         >
           <h3 className="text-2xl md:text-4xl font-bold text-[#303a42] text-center">
             Fitur Website
@@ -26,21 +26,21 @@ function FeatureSection() {
 
         {/* Right Side */}
         <div className="md:w-1/2 w-5/6 flex flex-col gap-10">
-          <div data-aos="fade-left">
+          <div data-aos="fade-up">
             <FeatureCard
               image="/icons/ic_interactive_map.png"
               title="Map Interakti"
               description="Jelajahi kost dengan peta yang interaktif"
             />
           </div>
-          <div data-aos="fade-left">
+          <div data-aos="fade-up">
             <FeatureCard
               image="/icons/ic_search_browser.png"
               title="Pencarian Kost"
               description="Pencarian lebih mudah menggunakan fitur pencarian"
             />
           </div>
-          <div data-aos="fade-left">
+          <div data-aos="fade-up">
             <FeatureCard
               image="/icons/ic_information_browser.png"
               title="Informasi Kost"
