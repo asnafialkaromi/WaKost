@@ -15,8 +15,8 @@ function FeatureCard({ image, title, description }) {
 
       {/* Right Side: Content */}
       <CardBody>
-        <h3 className="font-bold">{title}</h3>
-        <p className="text-gray-600">{description}</p>
+        <h3 className="font-bold mb-2 text-sm md:text-md">{title}</h3>
+        <p className="text-gray-600 text-xs md:text-sm">{description}</p>
       </CardBody>
     </Card>
   );

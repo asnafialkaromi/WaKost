@@ -1,22 +1,33 @@
-import { Button } from "@nextui-org/react";
-import React, { useState } from "react";
+import { Button, useDisclosure } from "@nextui-org/react";
+import React, { Fragment, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { supabase } from "../../api/supabaseClient";
+import ConfirmationModal from "./ConfirmationModal";
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const {
+    isOpen: isLogoutOpen,
+    onOpen: onLogoutOpen,
+    onClose: onLogoutClose,
+  } = useDisclosure();
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
   };
 
   const handleLogout = async (e) => {
+    setLoading(true);
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error("Error logging out:", error.message);
+      setLoading(false);
     }
+    setLoading(false);
     toast.success("Logout Berhasil", {
       onClose: () => navigate("/"),
     });
@@ -105,7 +116,7 @@ const Sidebar = () => {
             variant="light"
             className="my-2 bg-gray-700 text-white"
             size="md"
-            onPress={handleLogout}
+            onPress={onLogoutOpen}
           >
             Logout
           </Button>
@@ -119,6 +130,16 @@ const Sidebar = () => {
           className="fixed h-full w-full -z-20 bg-black bg-opacity-50 md:hidden"
         ></div>
       )}
+
+      <Fragment>
+        <ConfirmationModal
+          isOpen={isLogoutOpen}
+          loading={loading}
+          onClose={onLogoutClose}
+          onConfirm={handleLogout}
+          message="Apakah Anda yakin ingin keluar?"
+        />
+      </Fragment>
     </>
   );
 };
