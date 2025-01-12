@@ -1,5 +1,4 @@
 import { nextui } from '@nextui-org/react';
-const defaultTheme = require('tailwindcss/defaultTheme')
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -10,9 +9,7 @@ export default {
   ],
   theme: {
     extend: {
-      fontFamily: {
-        'sans': ['Roboto', ...defaultTheme.fontFamily.sans],
-      },
+
     },
   },
   plugins: [nextui(
