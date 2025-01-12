@@ -16,6 +16,8 @@ import EditProperties from "./pages/EditProperties.jsx";
 import Facility from "./pages/Facility.jsx";
 import AddFaq from "./pages/AddFaq.jsx";
 import Login from "./pages/Login.jsx";
+import Faq from "./pages/Faq.jsx";
+import About from "./pages/About.jsx";
 
 const router = createBrowserRouter([
   {
@@ -57,6 +59,14 @@ const router = createBrowserRouter([
   {
     path: "/login",
     element: <Login />,
+  },
+  {
+    path: "/faq",
+    element: <Faq />,
+  },
+  {
+    path: "/about",
+    element: <About />,
   },
 ]);
 

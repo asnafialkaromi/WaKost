@@ -26,7 +26,6 @@ import {
 } from "@nextui-org/react";
 import { Bounce, toast, ToastContainer } from "react-toastify";
 import ConfirmationModal from "../components/common/ConfirmationModal";
-import { s } from "framer-motion/client";
 
 function AddFaq() {
   const {
@@ -148,7 +147,7 @@ function AddFaq() {
             </BreadcrumbItem>
             <BreadcrumbItem>FAQ</BreadcrumbItem>
           </Breadcrumbs>
-          <Button color="primary" onClick={onAddOpen}>
+          <Button color="primary" onPress={onAddOpen}>
             Tambah FAQ
           </Button>
         </div>

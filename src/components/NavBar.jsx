@@ -35,7 +35,7 @@ function NavBar() {
         </NavbarBrand>
       </NavbarContent>
 
-      <NavbarContent className="hidden sm:flex gap-4" justify="center">
+      <NavbarContent className="hidden sm:flex gap-8" justify="center">
         <NavbarItem isActive>
           <Link color="primary" href="/">
             Home
@@ -43,16 +43,16 @@ function NavBar() {
         </NavbarItem>
         <NavbarItem>
           <Link color="foreground" href="/kost">
-            Kost
+            Peta
           </Link>
         </NavbarItem>
         <NavbarItem>
-          <Link color="foreground" href="#">
+          <Link color="foreground" href="/about">
             About
           </Link>
         </NavbarItem>
         <NavbarItem>
-          <Link color="foreground" href="#">
+          <Link color="foreground" href="/faq">
             FAQ
           </Link>
         </NavbarItem>
@@ -60,9 +60,9 @@ function NavBar() {
       <NavbarContent justify="end">
         <NavbarItem>
           <Button
-            as={Link}
             color="primary"
-            href="#"
+            as={Link}
+            href="/login"
             variant="shadow"
             radius="lg"
             className="font-semibold"
@@ -73,22 +73,22 @@ function NavBar() {
       </NavbarContent>
       <NavbarMenu>
         <NavbarMenuItem>
-          <Link color="primary" href="#">
+          <Link color="primary" href="/">
             Home
           </Link>
         </NavbarMenuItem>
         <NavbarMenuItem>
-          <Link color="foreground" href="#">
-            Kost
+          <Link color="foreground" href="/kost">
+            Peta
           </Link>
         </NavbarMenuItem>
         <NavbarMenuItem>
-          <Link color="foreground" href="#">
+          <Link color="foreground" href="/about">
             About
           </Link>
         </NavbarMenuItem>
         <NavbarMenuItem>
-          <Link color="foreground" href="#">
+          <Link color="foreground" href="/faq">
             FAQ
           </Link>
         </NavbarMenuItem>

@@ -252,7 +252,7 @@ function AddProperties() {
               />
               <Select
                 label="Tipe Kost"
-                name="type"
+                name="property_type"
                 placeholder="Pilih Tipe Kost"
                 errorMessage="Tipe Kost harus dipilih"
                 fullWidth

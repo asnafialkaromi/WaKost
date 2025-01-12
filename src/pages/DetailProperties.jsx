@@ -3,7 +3,7 @@ import NavBar from "../components/Navbar";
 import { useParams } from "react-router";
 import { supabase } from "../api/supabaseClient";
 import ImageGallery from "../components/ImageGallery";
-import { Card, CardBody, Chip, Divider } from "@nextui-org/react";
+import { Card, CardBody, Chip, Divider, Skeleton } from "@nextui-org/react";
 import Footer from "../components/Footer";
 import formatToIDR from "../utils/currencyFormatter";
 
@@ -12,11 +12,8 @@ function DetailProperties() {
   const [property, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchProperties();
-  }, []);
-
   const fetchProperties = async () => {
+    console.log(id);
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -33,24 +30,91 @@ function DetailProperties() {
       if (error) {
         throw error;
       }
-      console.log(data);
+
       setProperties(data);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching properties:", error.message);
+      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchProperties();
+  }, []);
 
   if (loading) {
     return (
       <>
         <NavBar />
-        <div className="text-center py-4">Loading...</div>
+        <main className="max-w-7xl mx-auto p-6">
+          <section className="flex flex-col lg:flex-row w-full justify-center gap-4">
+            {/* Image Gallery Skeleton */}
+            <div className="md:w-full w-full aspect-video">
+              <Skeleton className="w-full h-full rounded-lg" />
+            </div>
+
+            {/* Property Details Skeleton */}
+            <Card className="md:w-full h-fit p-2">
+              <CardBody>
+                <Skeleton className="mb-4 w-1/3 h-8 rounded-lg" />
+                <Skeleton className="mb-4 w-full h-8 rounded-lg" />
+                <Skeleton className="mb-4 w-2/3 h-8 rounded-lg" />
+                <Skeleton className="mb-4 w-1/2 h-8 rounded-lg" />
+                <Skeleton className="mb-4 w-2/5 h-8 rounded-lg" />
+                <Skeleton className="mb-4 w-1/3 h-8 rounded-lg" />
+                <Skeleton className="mb-4 w-3/5 h-8 rounded-lg" />
+              </CardBody>
+            </Card>
+          </section>
+
+          <Divider className="my-6" />
+
+          <section className="mt-6">
+            <Skeleton className="mb-4 w-full h-8 rounded-lg" />
+            <Skeleton className="mb-4 w-full h-8 rounded-lg" />
+            <Skeleton className="mb-4 w-full h-8 rounded-lg" />
+            <Skeleton className="mb-4 w-full h-8 rounded-lg" />
+          </section>
+
+          <Divider className="my-6" />
+
+          <section className="mt-6">
+            <Skeleton className="mb-4 w-full h-8 rounded-lg" />
+            <div className="grid sm:grid-cols-2 px-2 mt-2 gap-2">
+              {Array(4)
+                .fill()
+                .map((_, index) => (
+                  <div className="flex items-center" key={`kamar-${index}`}>
+                    <Skeleton className="mb-4 w-full h-8 rounded-lg" />
+                    <Skeleton className="mb-4 w-full h-8 rounded-lg" />
+                  </div>
+                ))}
+            </div>
+          </section>
+
+          <Divider className="my-6" />
+
+          <section className="mt-6">
+            <Skeleton width="30%" height={30} className="mb-4" />
+            <div className="grid sm:grid-cols-2 px-2 mt-2 gap-2">
+              {Array(4)
+                .fill()
+                .map((_, index) => (
+                  <div className="flex items-center" key={`umum-${index}`}>
+                    <Skeleton className="mb-4 w-full h-8 rounded-full" />
+                    <Skeleton className="w-full h-8" />
+                  </div>
+                ))}
+            </div>
+          </section>
+        </main>
+        <Footer />
       </>
     );
   }
 
-  if (!property) {
+  if (!property || property.length === 0) {
     return (
       <>
         <NavBar />
@@ -73,18 +137,18 @@ function DetailProperties() {
               <Chip color="primary" variant="solid" size="md">
                 {property[0].property_type}
               </Chip>
-              <h1 className="text-2xl md:text-md lg:text-2xl font-bold mt-4">
+              <h1 className="text-lg md:text-2xl md:text-md lg:text-2xl font-bold mt-4">
                 {property[0].name}
               </h1>
-              <p className="text-2xl font-bold text-blue-600 mt-2">
+              <p className="text-lg md:text-2xl font-bold text-blue-600 mt-2">
                 {formatToIDR(property[0].price)}/ bulan
               </p>
-              <p className="text-xl font-bold mt-8">Kota</p>
-              <p className="text-lg font-semibold text-gray-700">
+              <p className="text-md md:text-xl font-bold mt-4 md:mt-8">Kota</p>
+              <p className="text-sm md:text-lg font-semibold text-gray-700">
                 {property[0].city}
               </p>
-              <p className="text-xl font-bold mt-4">Alamat</p>
-              <p className="text-lg font-semibold text-gray-700">
+              <p className="text-md md:text-xl font-bold mt-4">Alamat</p>
+              <p className="text-sm md:text-lg font-semibold text-gray-700">
                 {property[0].address}
               </p>
             </CardBody>
@@ -94,8 +158,8 @@ function DetailProperties() {
         <Divider className="my-6" />
 
         <section className="mt-6">
-          <h2 className="text-2xl font-semibold">Deskripsi</h2>
-          <p className="text-lg mt-2 text-gray-700">
+          <h2 className="text-lg md:text-2xl font-semibold">Deskripsi</h2>
+          <p className="text-sm md:text-lg mt-2 text-gray-700">
             {property[0].description}
           </p>
         </section>
@@ -103,7 +167,7 @@ function DetailProperties() {
         <Divider className="my-6" />
 
         <section className="mt-6">
-          <h2 className="text-2xl font-semibold">Fasilitas Kamar</h2>
+          <h2 className="text-lg md:text-2xl font-semibold">Fasilitas Kamar</h2>
           <div className="grid sm:grid-cols-2 px-2 mt-2">
             {property[0].property_facilities
               .filter(
@@ -111,7 +175,7 @@ function DetailProperties() {
               )
               .map((facility, index) => (
                 <li
-                  className="text-lg flex items-center"
+                  className="text-sm md:text-lg flex items-center"
                   key={`kamar-${index}`}
                 >
                   <img
@@ -128,7 +192,7 @@ function DetailProperties() {
         <Divider className="my-6" />
 
         <section className="mt-6">
-          <h2 className="text-2xl font-semibold">Fasilitas Umum</h2>
+          <h2 className="text-lg md:text-2xl font-semibold">Fasilitas Umum</h2>
           <div className="grid sm:grid-cols-2 pl-2 mt-2">
             {property[0].property_facilities
               .filter(
@@ -136,7 +200,7 @@ function DetailProperties() {
               )
               .map((facility, index) => (
                 <li
-                  className="text-lg flex items-center"
+                  className="text-sm md:text-lg flex items-center"
                   key={`kamar-${index}`}
                 >
                   <img
