@@ -24,6 +24,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { supabase } from "../api/supabaseClient";
 import { Bounce, toast, ToastContainer } from "react-toastify";
+import calculateDistance from "../utils/calculateDistance";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -62,6 +63,8 @@ function EditProperties() {
     property_type: "",
     city: "",
     address: "",
+    telp: "",
+    distance: "",
     latitude: "",
     longitude: "",
     price: "",
@@ -74,6 +77,11 @@ function EditProperties() {
   const [clickedLocation, setClickedLocation] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const destination = {
+    latitude: -7.4002873,
+    longitude: 109.231088,
+  };
+
   useEffect(() => {
     const fetchPropertyDetails = async () => {
       try {
@@ -81,7 +89,7 @@ function EditProperties() {
           .from("properties")
           .select(
             `
-              id, name, property_type, city, address, latitude, longitude, price, description,
+              id, name, property_type, city, address, latitude, longitude, price, description, telp, distance,
               property_facilities (facility_id),images (url)
             `
           )
@@ -116,6 +124,8 @@ function EditProperties() {
           property_type: property.property_type,
           city: property.city,
           address: property.address,
+          telp: property.telp,
+          distance: property.distance,
           latitude: property.latitude,
           longitude: property.longitude,
           price: property.price,
@@ -206,6 +216,8 @@ function EditProperties() {
         property_type,
         city,
         address,
+        telp,
+        distance,
         latitude,
         longitude,
         price,
@@ -222,6 +234,8 @@ function EditProperties() {
           property_type,
           city,
           address,
+          telp,
+          distance,
           latitude,
           longitude,
           price,
@@ -297,12 +311,22 @@ function EditProperties() {
     useMapEvents({
       click(e) {
         const { lat, lng } = e.latlng;
+
+        const distance = calculateDistance(
+          destination.latitude,
+          destination.longitude,
+          lat,
+          lng
+        );
+
         setClickedLocation({ latitude: lat, longitude: lng });
         setFormData((prev) => ({
           ...prev,
           latitude: lat.toFixed(6),
           longitude: lng.toFixed(6),
+          distance: distance.toFixed(0),
         }));
+        console.log("Distance:", distance.toFixed(0));
       },
     });
     return clickedLocation ? (
@@ -420,6 +444,34 @@ function EditProperties() {
                 onChange={handleInputChange}
                 required
                 isRequired
+              />
+              <Input
+                label="No Telp"
+                placeholder="Masukkan nomor telepon"
+                errorMessage="Nomor telepon harus diisi"
+                name="telp"
+                fullWidth
+                value={formData.telp}
+                onChange={handleInputChange}
+                required
+                isRequired
+              />
+              <Input
+                label="Jarak"
+                name="distance"
+                placeholder="Jarak dari kampus"
+                errorMessage="Jarak harus diisi"
+                fullWidth
+                readOnly
+                value={formData.distance}
+                onChange={handleInputChange}
+                required
+                isRequired
+                endContent={
+                  <div className="pointer-events-none flex items-center">
+                    <span className="text-default-400 text-small">meter</span>
+                  </div>
+                }
               />
               <Input
                 label="Latitude"

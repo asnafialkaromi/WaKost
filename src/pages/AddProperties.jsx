@@ -37,6 +37,7 @@ function AddProperties() {
     property_type: "",
     city: "",
     address: "",
+    distance: "",
     latitude: "",
     longitude: "",
     price: "",
@@ -99,6 +100,7 @@ function AddProperties() {
         property_type,
         city,
         address,
+        distance,
         latitude,
         longitude,
         price,
@@ -115,6 +117,7 @@ function AddProperties() {
             property_type,
             city,
             address,
+            distance,
             latitude,
             longitude,
             price,
@@ -279,6 +282,26 @@ function AddProperties() {
                 name="address"
                 placeholder="Masukkan Alamat Kost"
                 errorMessage="Alamat Kost harus diisi"
+                fullWidth
+                onChange={handleInputChange}
+                required
+                isRequired
+              />
+              <Input
+                label="No Telp"
+                name="telp"
+                placeholder="Masukkan nomor telepon"
+                errorMessage="Nomor telepon harus diisi"
+                fullWidth
+                onChange={handleInputChange}
+                required
+                isRequired
+              />
+              <Input
+                label="Jarak"
+                name="distance"
+                placeholder="Jarak dari kampus"
+                errorMessage="Jarak harus diisi"
                 fullWidth
                 onChange={handleInputChange}
                 required
