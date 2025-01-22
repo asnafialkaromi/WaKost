@@ -13,16 +13,24 @@ import { useNavigate } from "react-router-dom";
 import {
   Button,
   Chip,
+  Image,
   Input,
+  Link,
   Modal,
   ModalBody,
   ModalContent,
   ModalFooter,
   ModalHeader,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  ScrollShadow,
+  Tooltip,
   useDisclosure,
 } from "@nextui-org/react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import formatToIDR from "../utils/currencyFormatter";
+import CardList from "./ui/CardList";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -35,23 +43,50 @@ L.Icon.Default.mergeOptions({
 });
 
 function Map() {
-  const [locations, setLocations] = useState([]);
+  const [properties, setProperties] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [analysisResult, setAnalysisResult] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loadingButton, setLoadingButton] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [minPrice, setMinPrice] = useState(0);
+  const [maxPrice, setMaxPrice] = useState(0);
+  const [maxDistance, setMaxDistance] = useState(0);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchLocations = async () => {
-      const { data, error } = await supabase.from("properties").select("*");
-      if (error) console.error("Error fetching locations:", error);
-      else setLocations(data);
-    };
+  const fetchLocations = async () => {
+    setIsLoading(true);
+    let query = supabase.from("properties").select(`
+      id, name, property_type, city, address, latitude, longitude, price, description, telp, distance,
+      images (url)
+    `);
 
+    if (minPrice) {
+      query = query.gte("price", minPrice);
+    }
+
+    if (maxPrice) {
+      query = query.lte("price", maxPrice);
+    }
+
+    if (maxDistance) {
+      query = query.lte("distance", maxDistance);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error("Error fetching properties:", error);
+    } else {
+      setProperties(data);
+    }
+    setIsLoading(false);
+  };
+
+  const handleFilter = () => {
     fetchLocations();
-  }, []);
+  };
 
   const handleMarkerClick = (id) => {
     navigate(`/kost/${id}`);
@@ -137,6 +172,24 @@ Pastikan hasil Anda hanya berupa JSON dan hanya untuk satu data properti yang pa
     }
   };
 
+  const handelResetFilterPrice = () => {
+    setMinPrice(0);
+    setMaxPrice(0);
+    fetchLocations();
+  };
+
+  const handelResetFilterDistance = () => {
+    if (maxDistance > 0) {
+      setMaxDistance(0);
+    } else {
+      fetchLocations();
+    }
+  };
+
+  useEffect(() => {
+    fetchLocations();
+  }, []);
+
   return (
     <>
       <Modal aria-labelledby="modal-title" isOpen={isOpen} onClose={onClose}>
@@ -182,44 +235,240 @@ Pastikan hasil Anda hanya berupa JSON dan hanya untuk satu data properti yang pa
           </ModalFooter>
         </ModalContent>
       </Modal>
-      <div className="flex absolute top-20 left-1/2 transform -translate-x-1/2 justify-center w-[70%] md:w-[60%] h-fit items-center gap-4 z-20 bg-white rounded-lg p-2">
-        <Input
-          type="text"
-          variant="flat"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Cari tempat kos ..."
-          isRequired
-          required
-        />
-        <Button
-          className="bg-primary text-white font-semibold px-4 py-2 rounded-full"
-          onPress={handleSearch}
-          isLoading={loadingButton}
-        >
-          Cari
-        </Button>
-      </div>
-      <div className="w-full relative z-0">
-        <MapContainer
-          center={[-7.4000599, 109.2316062]}
-          zoom={20}
-          style={{ height: "86vh", width: "100%" }}
-        >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          />
-          {locations.map((location) => (
-            <Marker
-              key={location.id}
-              position={[location.latitude, location.longitude]}
-              eventHandlers={{
-                click: () => handleMarkerClick(location.id),
-              }}
+
+      <div className="w-full flex flex-col md:flex-row">
+        <div className="flex flex-col w-full h-full p-6 gap-4">
+          <div className="flex top-32 justify-center w-full h-fit items-center gap-4 bg-white border-2 border-slate-200 shadow-sm rounded-lg p-2">
+            <Tooltip
+              placement="bottom"
+              showArrow={true}
+              content={
+                <div className="px-1 py-2 w-52">
+                  <div className="text-medium font-bold">
+                    Panduan Penggunaan
+                  </div>
+                  <div className="text-small">
+                    Cari tempat kos menggunakan AI dengan menggunakan kata kunci
+                    yang tepat agar sesuai dengan kriteria yang anda inginkan
+                  </div>
+                  <Link size="sm" showAnchorIcon href="/guide">
+                    Cek Panduan Penggunaan
+                  </Link>
+                </div>
+              }
+            >
+              <Input
+                type="text"
+                variant="flat"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Cari tempat kos menggunakan bantuan AI ..."
+                isRequired
+                required
+              />
+            </Tooltip>
+
+            <Tooltip
+              placement="bottom"
+              showArrow={true}
+              content={
+                <div className="px-1 py-2 w-52">
+                  <div className="text-medium font-bold">
+                    Panduan Penggunaan
+                  </div>
+                  <div className="text-small">
+                    Cari tempat kos menggunakan AI dengan menggunakan kata kunci
+                    yang tepat agar sesuai dengan kriteria yang anda inginkan.
+                  </div>
+                  <Link size="sm" showAnchorIcon href="/guide">
+                    Cek Panduan Penggunaan
+                  </Link>
+                </div>
+              }
+            >
+              <Link href="/guide">
+                <Image
+                  src="../../icons/ic_question.svg"
+                  alt="search"
+                  className="cursor-pointer"
+                />
+              </Link>
+            </Tooltip>
+
+            <Button
+              className="bg-primary text-white font-semibold px-4 py-2 rounded-full"
+              onPress={handleSearch}
+              isLoading={loadingButton}
+            >
+              Cari
+            </Button>
+          </div>
+
+          <div className="flex flex-row gap-2 w-full">
+            <Popover showArrow offset={10} placement="bottom">
+              <PopoverTrigger>
+                <Button color="primary" variant="ghost">
+                  Harga
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[300px]">
+                {(titleProps) => (
+                  <div className="px-1 py-2 w-full">
+                    <p
+                      className="text-small font-bold text-foreground"
+                      {...titleProps}
+                    >
+                      Harga
+                    </p>
+                    <div className="mt-2 flex flex-row gap-2 w-full">
+                      <Input
+                        defaultValue="100000"
+                        label="Terendah"
+                        size="sm"
+                        variant="bordered"
+                        value={minPrice}
+                        onChange={(e) => setMinPrice(Number(e.target.value))}
+                        startContent={
+                          <span className="text-default-400">Rp</span>
+                        }
+                      />
+                      <Input
+                        defaultValue="100000"
+                        label="Tertinggi"
+                        size="sm"
+                        variant="bordered"
+                        value={maxPrice}
+                        onChange={(e) => setMaxPrice(Number(e.target.value))}
+                        startContent={
+                          <span className="text-default-400">Rp</span>
+                        }
+                      />
+                    </div>
+                    <Button
+                      color="primary"
+                      size="sm"
+                      variant="solid"
+                      className="w-full mt-2"
+                      onPress={handleFilter}
+                    >
+                      Simpan
+                    </Button>
+                    <Button
+                      color="primary"
+                      size="sm"
+                      variant="light"
+                      className="w-full mt-2"
+                      onPress={handelResetFilterPrice}
+                    >
+                      Reset
+                    </Button>
+                  </div>
+                )}
+              </PopoverContent>
+            </Popover>
+
+            <Popover showArrow offset={10} placement="bottom">
+              <PopoverTrigger>
+                <Button color="primary" variant="ghost">
+                  Jarak
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[300px]">
+                {(titleProps) => (
+                  <div className="px-1 py-2 w-full">
+                    <p
+                      className="text-small font-bold text-foreground"
+                      {...titleProps}
+                    >
+                      Jarak
+                    </p>
+                    <div className="mt-2 flex flex-row gap-2 w-full">
+                      <Input
+                        defaultValue="10"
+                        label="Terjauh"
+                        size="sm"
+                        variant="bordered"
+                        value={maxDistance}
+                        onChange={(e) => setMaxDistance(Number(e.target.value))}
+                        endContent={
+                          <span className="text-default-400">Meter</span>
+                        }
+                      />
+                    </div>
+                    <Button
+                      color="primary"
+                      size="sm"
+                      variant="solid"
+                      className="w-full mt-2"
+                      onPress={handleFilter}
+                    >
+                      Simpan
+                    </Button>
+                    <Button
+                      color="primary"
+                      size="sm"
+                      variant="light"
+                      className="w-full mt-2"
+                      onPress={handelResetFilterDistance}
+                    >
+                      Reset
+                    </Button>
+                  </div>
+                )}
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <ScrollShadow
+            hideScrollBar
+            className="flex flex-col w-full h-[70vh] p-2"
+          >
+            {isLoading ? (
+              <div className="flex justify-center items-center h-full">
+                <p>Loading data...</p>
+              </div>
+            ) : properties.length > 0 ? (
+              <div className="flex flex-col w-full h-fit gap-2">
+                {properties.map((property) => (
+                  <CardList
+                    id={property.id}
+                    key={property.id}
+                    image={property.images[0]?.url}
+                    type={property.property_type}
+                    title={property.name}
+                    price={property.price}
+                    distance={property.distance}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="flex justify-center items-center h-full">
+                <p>Tidak ada data yang ditemukan.</p>
+              </div>
+            )}
+          </ScrollShadow>
+        </div>
+        <div className="h-full w-full z-0 hidden md:block">
+          <MapContainer
+            center={[-7.4000599, 109.2316062]}
+            zoom={20}
+            style={{ height: "94vh", width: "100%", zIndex: 0 }}
+          >
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
-          ))}
-        </MapContainer>
+            {properties.map((properties) => (
+              <Marker
+                key={properties.id}
+                position={[properties.latitude, properties.longitude]}
+                eventHandlers={{
+                  click: () => handleMarkerClick(location.id),
+                }}
+              />
+            ))}
+          </MapContainer>
+        </div>
       </div>
     </>
   );

@@ -306,7 +306,7 @@ function AddFaq() {
               {faqs.map((faq) => (
                 <TableRow key={faq.id}>
                   <TableCell>{faq.question}</TableCell>
-                  <TableCell>{faq.answer}</TableCell>
+                  <TableCell className="max-w-[400px]">{faq.answer}</TableCell>
                   <TableCell className="space-x-2">
                     <Button
                       color="warning"

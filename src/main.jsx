@@ -18,6 +18,7 @@ import AddFaq from "./pages/AddFaq.jsx";
 import Login from "./pages/Login.jsx";
 import Faq from "./pages/Faq.jsx";
 import About from "./pages/About.jsx";
+import Guide from "./pages/Guide.jsx";
 
 const router = createBrowserRouter([
   {
@@ -67,6 +68,10 @@ const router = createBrowserRouter([
   {
     path: "/about",
     element: <About />,
+  },
+  {
+    path: "/guide",
+    element: <Guide />,
   },
 ]);
 

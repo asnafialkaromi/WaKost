@@ -20,7 +20,7 @@ function DetailProperties() {
         .from("properties")
         .select(
           `
-          id, name, city, address, price, description, property_type,
+          id, name, city, address, price, latitude, longitude, description, property_type, telp, distance,
           images (url), 
           property_facilities (facilities (name, facilities_type, icon_url))
         `
@@ -212,6 +212,53 @@ function DetailProperties() {
                 </li>
               ))}
           </div>
+        </section>
+
+        <Divider className="my-6" />
+
+        <section className="mt-6">
+          <h2 className="text-lg md:text-2xl font-semibold mb-4">
+            Jarak ke Universitas
+          </h2>
+          <li className="text-sm md:text-lg flex items-center">
+            <img
+              src="../../images/img_logo-amikom.png"
+              alt="Icon Whatsapp"
+              className="w-8 h-8 mr-4 mb-2 mt-2"
+            />
+            {`${property[0].distance} Meter`}
+          </li>
+        </section>
+
+        <Divider className="my-6" />
+
+        <section className="mt-6">
+          <h2 className="text-lg md:text-2xl font-semibold mb-4">
+            Kontak Pemilik
+          </h2>
+          <li className="text-sm md:text-lg flex items-center">
+            <img
+              src="../../icons/ic_whatsapp.png"
+              alt="Icon Whatsapp"
+              className="w-6 h-6 mr-2 mb-2 mt-2"
+            />
+            {`0${property[0].telp}`}
+          </li>
+        </section>
+
+        <Divider className="my-6" />
+
+        <section className="mt-6">
+          <h2 className="text-lg md:text-2xl font-semibold mb-4">Google Map</h2>
+          <iframe
+            src={`https://maps.google.com/maps?q=${property[0].latitude},${property[0].longitude}&z=18&output=embed`}
+            width="100%"
+            height="600"
+            style={{ border: 0 }}
+            allowFullScreen=""
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          ></iframe>
         </section>
       </main>
       <Footer />

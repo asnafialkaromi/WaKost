@@ -53,6 +53,11 @@ const NavBar = () => {
             FAQ
           </Link>
         </NavbarItem>
+        <NavbarItem>
+          <Link color="foreground" href="/guide">
+            Panduan
+          </Link>
+        </NavbarItem>
       </NavbarContent>
       <NavbarContent justify="end">
         <NavbarItem>
@@ -87,6 +92,11 @@ const NavBar = () => {
         <NavbarMenuItem>
           <Link color="foreground" href="/faq">
             FAQ
+          </Link>
+        </NavbarMenuItem>
+        <NavbarMenuItem>
+          <Link color="foreground" href="/guide">
+            Panduan
           </Link>
         </NavbarMenuItem>
       </NavbarMenu>
