@@ -446,7 +446,7 @@ function EditProperties() {
                 isRequired
               />
               <Input
-                label="No Telp"
+                label="No. Telp"
                 placeholder="Masukkan nomor telepon"
                 errorMessage="Nomor telepon harus diisi"
                 name="telp"
@@ -469,7 +469,7 @@ function EditProperties() {
                 isRequired
                 endContent={
                   <div className="pointer-events-none flex items-center">
-                    <span className="text-default-400 text-small">meter</span>
+                    <span className="text-default-400 text-small">Meter</span>
                   </div>
                 }
               />
@@ -524,7 +524,7 @@ function EditProperties() {
                 size="lg"
               />
             </div>
-            <div className="w-full max-h-[620px] h-[80vh] z-0">
+            <div className="w-full max-h-[820px] h-[80vh] z-0">
               <MapContainer
                 center={[-7.4000599, 109.2316062]}
                 zoom={20}

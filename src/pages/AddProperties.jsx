@@ -19,6 +19,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { supabase } from "../api/supabaseClient";
 import { Bounce, toast, ToastContainer } from "react-toastify";
+import calculateDistance from "../utils/calculateDistance";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -37,6 +38,7 @@ function AddProperties() {
     property_type: "",
     city: "",
     address: "",
+    telp: "",
     distance: "",
     latitude: "",
     longitude: "",
@@ -100,6 +102,7 @@ function AddProperties() {
         property_type,
         city,
         address,
+        telp,
         distance,
         latitude,
         longitude,
@@ -117,6 +120,7 @@ function AddProperties() {
             property_type,
             city,
             address,
+            telp,
             distance,
             latitude,
             longitude,
@@ -200,16 +204,31 @@ function AddProperties() {
     }
   };
 
+  const destination = {
+    latitude: -7.4002873,
+    longitude: 109.231088,
+  };
+
   const LocationMarker = () => {
     useMapEvents({
       click(e) {
         const { lat, lng } = e.latlng;
+
+        const distance = calculateDistance(
+          destination.latitude,
+          destination.longitude,
+          lat,
+          lng
+        );
+
         setClickedLocation({ latitude: lat, longitude: lng });
         setFormData((prev) => ({
           ...prev,
           latitude: lat.toFixed(6),
           longitude: lng.toFixed(6),
+          distance: distance.toFixed(0),
         }));
+        console.log("Distance:", distance.toFixed(0));
       },
     });
     return clickedLocation ? (
@@ -288,7 +307,7 @@ function AddProperties() {
                 isRequired
               />
               <Input
-                label="No Telp"
+                label="No. Telp"
                 name="telp"
                 placeholder="Masukkan nomor telepon"
                 errorMessage="Nomor telepon harus diisi"
@@ -303,9 +322,15 @@ function AddProperties() {
                 placeholder="Jarak dari kampus"
                 errorMessage="Jarak harus diisi"
                 fullWidth
+                value={formData.distance}
                 onChange={handleInputChange}
                 required
                 isRequired
+                endContent={
+                  <div className="pointer-events-none flex items-center">
+                    <span className="text-default-400 text-small">Meter</span>
+                  </div>
+                }
               />
               <Input
                 label="Latitude"
@@ -356,7 +381,7 @@ function AddProperties() {
                 size="lg"
               />
             </div>
-            <div className="w-full max-h-[620px] h-[80vh] z-0">
+            <div className="w-full max-h-[820px] h-[80vh] z-0">
               <MapContainer
                 center={[-7.4000599, 109.2316062]}
                 zoom={20}
