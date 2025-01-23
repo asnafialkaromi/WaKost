@@ -117,6 +117,8 @@ function Map() {
     "name": "string",
     "city": "string",
     "address": "string",
+    "telp": number
+    "distance": number
     "price": number,
     "description": "string",
     "property_type": "string",
@@ -421,7 +423,7 @@ Pastikan hasil Anda hanya berupa JSON dan hanya untuk satu data properti yang pa
 
           <ScrollShadow
             hideScrollBar
-            className="flex flex-col w-full h-[70vh] p-2"
+            className="flex flex-col w-full h-[75vh] p-2"
           >
             {isLoading ? (
               <div className="flex justify-center items-center h-full">
@@ -451,7 +453,7 @@ Pastikan hasil Anda hanya berupa JSON dan hanya untuk satu data properti yang pa
         <div className="h-full w-full z-0 hidden md:block">
           <MapContainer
             center={[-7.4000599, 109.2316062]}
-            zoom={20}
+            zoom={17}
             style={{ height: "94vh", width: "100%", zIndex: 0 }}
           >
             <TileLayer
@@ -463,7 +465,7 @@ Pastikan hasil Anda hanya berupa JSON dan hanya untuk satu data properti yang pa
                 key={properties.id}
                 position={[properties.latitude, properties.longitude]}
                 eventHandlers={{
-                  click: () => handleMarkerClick(location.id),
+                  click: () => handleMarkerClick(properties.id),
                 }}
               />
             ))}
